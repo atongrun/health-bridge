@@ -42,7 +42,7 @@ func Open(path string, readonly bool) (*sql.DB, error) {
 		dsn += "?mode=ro"
 	} else {
 		dsn += "?_pragma=journal_mode(WAL)&_pragma=synchronous(FULL)" +
-			"&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+			"&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_txlock=immediate"
 	}
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {

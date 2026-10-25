@@ -1,11 +1,10 @@
-// Command healthbridge is the Health Bridge server CLI. S03a implements the
-// local owner surface only: check-config, migrate and a serve that exposes
-// nothing but the anonymous /healthz endpoint. Collection upload and query
-// endpoints arrive in S03b and S06; no business HTTP upload exists yet.
+// Command healthbridge is the Health Bridge server CLI. S03a/S03b implement the
+// owner surface: check-config, migrate, and serve (which now exposes the
+// shortcuts-1 plan/observations/failure/status endpoints plus anonymous
+// /healthz). Query endpoints arrive in S06.
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,17 +13,18 @@ import (
 	"os"
 
 	"github.com/atongrun/health-bridge/server/internal/config"
+	"github.com/atongrun/health-bridge/server/internal/httpapi"
 	"github.com/atongrun/health-bridge/server/internal/store"
 )
 
-const version = "0.1.0-s03a"
+const version = "0.1.0-s03b"
 
 const usage = `usage: healthbridge <command> [-config PATH]
 
 commands:
   check-config   load and validate the config JSON
   migrate        apply versioned schema migrations (idempotent)
-  serve          run the server; S03a serves /healthz only
+  serve          run the shortcuts-1 upload server
   version        print the build version`
 
 func main() {
@@ -84,16 +84,12 @@ func run(args []string) error {
 			return err
 		}
 		mux := http.NewServeMux()
-		mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Cache-Control", "no-store")
-			w.Header().Set("Content-Type", "application/json")
-			_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
-		})
+		mux.Handle("/", httpapi.NewHandler(db))
 		ln, err := net.Listen("tcp", cfg.ListenAddress)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("serving /healthz on %s\n", cfg.ListenAddress)
+		fmt.Printf("serving on %s\n", cfg.ListenAddress)
 		return http.Serve(ln, mux)
 	default:
 		return fmt.Errorf("unknown command %q\n%s", args[0], usage)
