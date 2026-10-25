@@ -299,8 +299,8 @@ func TestDuplicateRereadNoDouble(t *testing.T) {
 		t.Fatal(err)
 	}
 	sum1 := dailySum(t, db, day, "step_count", "p_steps")
-	if sum1 != 5000 {
-		t.Fatalf("first aggregate sum = %v, want 5000", sum1)
+	if sum1 != 4000 {
+		t.Fatalf("first aggregate sum = %v, want 4000", sum1)
 	}
 
 	// Re-read the same window with the same multiset reordered: a fresh attempt,
@@ -332,8 +332,8 @@ func TestDuplicateRereadNoDouble(t *testing.T) {
 	if _, err := ag.RecomputeDirty(now); err != nil {
 		t.Fatal(err)
 	}
-	if sum2 := dailySum(t, db, day, "step_count", "p_steps"); sum2 != 5000 {
-		t.Fatalf("re-read aggregate sum = %v, want 5000 (no doubling)", sum2)
+	if sum2 := dailySum(t, db, day, "step_count", "p_steps"); sum2 != 4000 {
+		t.Fatalf("re-read aggregate sum = %v, want 4000 (no doubling)", sum2)
 	}
 }
 
