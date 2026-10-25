@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0",
+  "status": "design",
+  "metrics": [
+    {
+      "metric": "active_energy",
+      "healthkit_identifier": "HKQuantityTypeIdentifierActiveEnergyBurned",
+      "kind": "quantity",
+      "unit": "kcal",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "step_count",
+      "healthkit_identifier": "HKQuantityTypeIdentifierStepCount",
+      "kind": "quantity",
+      "unit": "count",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "apple_exercise_time",
+      "healthkit_identifier": "HKQuantityTypeIdentifierAppleExerciseTime",
+      "kind": "quantity",
+      "unit": "min",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "heart_rate",
+      "healthkit_identifier": "HKQuantityTypeIdentifierHeartRate",
+      "kind": "quantity",
+      "unit": "count/min",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "hrr1_native",
+      "healthkit_identifier": "HKQuantityTypeIdentifierHeartRateRecoveryOneMinute",
+      "kind": "quantity",
+      "unit": "count/min",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "resting_hr",
+      "healthkit_identifier": "HKQuantityTypeIdentifierRestingHeartRate",
+      "kind": "quantity",
+      "unit": "count/min",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "hrv_sdnn",
+      "healthkit_identifier": "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+      "kind": "quantity",
+      "unit": "ms",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "vo2_max",
+      "healthkit_identifier": "HKQuantityTypeIdentifierVO2Max",
+      "kind": "quantity",
+      "unit": "mL/(kg*min)",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "walking_hr",
+      "healthkit_identifier": "HKQuantityTypeIdentifierWalkingHeartRateAverage",
+      "kind": "quantity",
+      "unit": "count/min",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "respiratory_rate",
+      "healthkit_identifier": "HKQuantityTypeIdentifierRespiratoryRate",
+      "kind": "quantity",
+      "unit": "count/min",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "oxygen_saturation",
+      "healthkit_identifier": "HKQuantityTypeIdentifierOxygenSaturation",
+      "kind": "quantity",
+      "unit": "1",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "wrist_temperature",
+      "healthkit_identifier": "HKQuantityTypeIdentifierAppleSleepingWristTemperature",
+      "kind": "quantity",
+      "unit": "degC",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "body_mass",
+      "healthkit_identifier": "HKQuantityTypeIdentifierBodyMass",
+      "kind": "quantity",
+      "unit": "kg",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "height",
+      "healthkit_identifier": "HKQuantityTypeIdentifierHeight",
+      "kind": "quantity",
+      "unit": "m",
+      "aggregation_style": "discrete",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "swimming_stroke_count",
+      "healthkit_identifier": "HKQuantityTypeIdentifierSwimmingStrokeCount",
+      "kind": "quantity",
+      "unit": "count",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "distance_swimming",
+      "healthkit_identifier": "HKQuantityTypeIdentifierDistanceSwimming",
+      "kind": "quantity",
+      "unit": "m",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "distance_walking_running",
+      "healthkit_identifier": "HKQuantityTypeIdentifierDistanceWalkingRunning",
+      "kind": "quantity",
+      "unit": "m",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "distance_cycling",
+      "healthkit_identifier": "HKQuantityTypeIdentifierDistanceCycling",
+      "kind": "quantity",
+      "unit": "m",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "distance_wheelchair",
+      "healthkit_identifier": "HKQuantityTypeIdentifierDistanceWheelchair",
+      "kind": "quantity",
+      "unit": "m",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "distance_downhill_snow_sports",
+      "healthkit_identifier": "HKQuantityTypeIdentifierDistanceDownhillSnowSports",
+      "kind": "quantity",
+      "unit": "m",
+      "aggregation_style": "cumulative",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "sleep",
+      "healthkit_identifier": "HKCategoryTypeIdentifierSleepAnalysis",
+      "kind": "category",
+      "unit": "s",
+      "device_validation": "pending"
+    },
+    {
+      "metric": "workout",
+      "healthkit_identifier": "HKWorkoutTypeIdentifier",
+      "kind": "workout",
+      "unit": "s",
+      "device_validation": "pending"
+    }
+  ]
+}

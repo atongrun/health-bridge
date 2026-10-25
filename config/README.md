@@ -1,0 +1,9 @@
+# 配置契约
+
+`config.example.json` 是无secret设计示例；没有程序在本轮读取它。未来配置解析必须拒绝未知键和不安全值；首次安装需替换example域名、建立路径/权限、创建实际backup公钥文件。
+
+query_enabled是启动配置总开关，与instance_state.queries_paused一起生效：只有配置允许且数据库未暂停才可查询，不能用配置覆盖restore暂停。source_priority为metric→source_id数组，空表示使用文档的自动fallback并标partial。
+
+初次需要查询时由owner修改query_enabled=true并reload，再通过本地query enable解除初始暂停；installer可用显式--enable-query完成配置部分，但不能绕过restore的reconciliation gate。derived_metrics.wrist_temperature_delta_28d_enabled只控制自定义基线计算，false时仍保存腕温绝对值。
+
+OAuth disabled时不要求secret_file存在；enabled时文件缺失/权限不安全必须启动失败。数据库和token由CLI初始化，不把token直接填在此配置。写入限额是上限，生产配置只能收紧；放宽上限需要容量测试与ADR。

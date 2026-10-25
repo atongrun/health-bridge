@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "batch_id": "00000000-0000-4000-8000-000000000001",
+  "stream_id": "00000000-0000-4000-8000-000000000002",
+  "server_generation": "00000000-0000-4000-8000-000000000003",
+  "publisher_epoch": "00000000-0000-4000-8000-000000000004",
+  "seq": 1,
+  "kind": "samples",
+  "type": "HKQuantityTypeIdentifierHeartRate",
+  "query_completed_at": "2026-01-01T00:01:00Z",
+  "scan_state": "drained",
+  "samples": [
+    {
+      "uuid": "00000000-0000-4000-8000-000000000005",
+      "type": "HKQuantityTypeIdentifierHeartRate",
+      "kind": "quantity",
+      "start": "2026-01-01T00:00:00.123456Z",
+      "end": "2026-01-01T00:00:00.123456Z",
+      "source": {
+        "bundle_id": "com.example.synthetic",
+        "name": "Synthetic fixture",
+        "version": "1",
+        "os_version": null,
+        "product_type": null,
+        "device": null
+      },
+      "metadata": {},
+      "quantity": {
+        "value": 60.0,
+        "unit": "count/min",
+        "count": 1
+      }
+    }
+  ],
+  "deletions": []
+}

@@ -1,0 +1,38 @@
+{
+  "config_version": 1,
+  "listen_address": "127.0.0.1:8080",
+  "public_origin": "https://health.example.com",
+  "database_path": "/var/lib/healthbridge/health.db",
+  "admin_socket": "/run/healthbridge/admin.sock",
+  "report_timezone": "Asia/Shanghai",
+  "query_enabled": false,
+  "source_priority": {},
+  "derived_metrics": {
+    "wrist_temperature_delta_28d_enabled": false
+  },
+  "limits": {
+    "batch_records": 500,
+    "body_bytes": 4194304,
+    "query_days": 366,
+    "query_points": 1000,
+    "response_bytes": 1048576,
+    "query_concurrency": 4,
+    "writer_queue_capacity": 2
+  },
+  "oauth": {
+    "enabled": false,
+    "secret_file": "/etc/healthbridge/oauth-secret",
+    "resource": "https://health.example.com/mcp",
+    "dynamic_registration": false
+  },
+  "backups": {
+    "directory": "/var/lib/healthbridge/backups",
+    "age_recipient_file": "/etc/healthbridge/backup-recipient",
+    "keep_daily": 7,
+    "keep_weekly": 4
+  },
+  "logging": {
+    "level": "info",
+    "http_access_log": false
+  }
+}
