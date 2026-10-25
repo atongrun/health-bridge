@@ -1,8 +1,27 @@
 # Third-party notices
 
-2026-10-25当前版本仅包含原创设计文档、参考DDL、合成契约示例和文档校验脚本；**尚未导入上游业务源码或产品运行依赖**。
+2026-10-25：仓库原创部分为设计文档、参考DDL、合成契约示例、文档校验脚本，以及 S03a 起新增的 Go 服务源码（`server/`，原创）。尚未复制/移植任何上游业务源码（research/reuse 中五项目的代码均未照搬）。
 
-设计/CI检查通过requirements-design.txt使用jsonschema 4.26.0（MIT）及锁定的传递依赖（attrs、jsonschema-specifications、referencing、rpds-py、typing_extensions）。这些包安装在检查环境，不vendoring到仓库、不安装到iPhone、不是Go产品运行依赖。发行若打包这些工具或包须随其实际LICENSE保留notice。上游：[jsonschema](https://pypi.org/project/jsonschema/4.26.0/)。
+## 产品运行依赖（Go，S03a 引入）
+
+通过 `server/go.mod` 锁定，`server/go.sum` 记录校验和；`CGO=0`，无 Swift/GRDB/Xcode。
+
+| 依赖 | 版本 | License | 用途 |
+|---|---|---|---|
+| modernc.org/sqlite | v1.61.0 | BSD-3-Clause | 纯 Go SQLite 驱动 |
+| modernc.org/libc / memory / mathutil | v1.79.0 / v1.12.1 / v1.7.1 | BSD-3-Clause | sqlite 传递依赖 |
+| github.com/dustin/go-humanize | v1.1.0 | MIT | 传递依赖 |
+| github.com/google/uuid | v1.6.0 | BSD-3-Clause | 传递依赖 |
+| github.com/mattn/go-isatty | v0.0.24 | MIT | 传递依赖 |
+| github.com/ncruces/go-strftime | v1.1.0 | MIT | 传递依赖 |
+| github.com/remyoudompheng/bigfft | v0.0.0-20230129092748-24d4a6f8daec | BSD-3-Clause | 传递依赖 |
+| golang.org/x/sys | v0.49.0 | BSD-3-Clause | 传递依赖 |
+
+许可证全文在发行时（S08）由锁文件生成的 SBOM/notice 随包携带；上表 License 栏来自各模块 go.sum 对应版本的元数据，最终以发行构建产物为准。
+
+## 设计/CI 检查依赖
+
+requirements-design.txt 使用 jsonschema 4.26.0（MIT）及锁定传递依赖（attrs、jsonschema-specifications、referencing、rpds-py、typing_extensions）。这些包安装在检查环境，不 vendoring 到仓库、不安装到 iPhone、不是 Go 产品运行依赖。上游：[jsonschema](https://pypi.org/project/jsonschema/4.26.0/)。
 
 已调研的候选及未来复用决策见 [docs/research.md](docs/research.md) 与 [docs/reuse.md](docs/reuse.md)。外部项目名称用于说明来源，不表示背书或商标授权。
 
@@ -11,4 +30,4 @@
 | Upstream + commit | Source path | Destination path | License | Changes | Reviewed on |
 |---|---|---|---|---|---|
 
-许可证全文放 `third_party/<project>/LICENSE`；如果上游有适用NOTICE一并保留。依赖引入后由锁文件生成发行notice；不得把本文件当前“无导入”状态保留到包含第三方源码的版本。
+许可证全文放 `third_party/<project>/LICENSE`；如果上游有适用 NOTICE 一并保留。
