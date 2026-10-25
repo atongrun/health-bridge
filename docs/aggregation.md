@@ -84,3 +84,5 @@ Apple workout statistics 的 avg/max 与 derived sample avg/max 分开字段：`
 ## 8. 事务与失效
 
 原始变更事务合并 dirty day 和目标 revision。worker 开始读一个 snapshot revision R，算完在 writer transaction 验证 day revision 未变，才 upsert metrics + 删 dirty；不相同则重排。一次处理≤31日，预算5秒后让出 writer；backfill 完成后慢慢追平。读取 dirty 的日返回 pending/null，不悄悄返回旧投影。
+
+每次投影发布或清理事务提升instance_state.projection_revision；只提升投影版本不制造新的raw dirty。分页cursor同时绑定data/projection/policy版本，防止原始数据没变但聚合完成后把新旧投影拼在同一分页结果中。

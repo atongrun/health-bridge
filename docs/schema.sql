@@ -7,6 +7,7 @@ CREATE TABLE schema_migrations (
 CREATE TABLE instance_state (
   singleton INTEGER PRIMARY KEY CHECK(singleton=1), generation TEXT NOT NULL,
   data_revision INTEGER NOT NULL DEFAULT 0 CHECK(data_revision>=0),
+  projection_revision INTEGER NOT NULL DEFAULT 0 CHECK(projection_revision>=0),
   queries_paused INTEGER NOT NULL DEFAULT 1 CHECK(queries_paused IN (0,1)),
   report_timezone TEXT NOT NULL, policy_version INTEGER NOT NULL DEFAULT 1
 ) STRICT;
@@ -51,6 +52,7 @@ CREATE TABLE samples (
   source_id TEXT NOT NULL REFERENCES sources(id), source_timezone TEXT, start_offset_seconds INTEGER,
   value REAL, unit TEXT, sample_count INTEGER, category_value INTEGER, category_label TEXT,
   series_state TEXT NOT NULL DEFAULT 'not_applicable' CHECK(series_state IN ('not_applicable','pending','complete','unavailable')),
+  series_target_generation TEXT,
   metadata_json TEXT NOT NULL CHECK(json_valid(metadata_json)),
   raw_json TEXT NOT NULL CHECK(json_valid(raw_json)), content_sha256 TEXT NOT NULL,
   received_at_us INTEGER NOT NULL, data_revision INTEGER NOT NULL,
@@ -71,7 +73,8 @@ CREATE TABLE quantity_series (
   generation TEXT NOT NULL, expected_count INTEGER CHECK(expected_count>=0),
   expected_chunks INTEGER CHECK(expected_chunks>=0), manifest_sha256 TEXT,
   state TEXT NOT NULL CHECK(state IN ('pending','complete','unavailable','superseded')),
-  reason TEXT, revision INTEGER NOT NULL, PRIMARY KEY(sample_uuid,generation)
+  reason TEXT, writer_stream_id TEXT NOT NULL REFERENCES sync_streams(id),
+  revision INTEGER NOT NULL, PRIMARY KEY(sample_uuid,generation)
 ) STRICT;
 CREATE UNIQUE INDEX one_complete_series ON quantity_series(sample_uuid) WHERE state='complete';
 CREATE TABLE series_chunks (
@@ -93,6 +96,7 @@ CREATE TABLE workouts (
   active_energy_kcal REAL, distance_m REAL, pool_length_m REAL CHECK(pool_length_m>0),
   statistics_json TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(statistics_json)),
   detail_state TEXT NOT NULL DEFAULT 'pending', detail_revision INTEGER NOT NULL DEFAULT 0,
+  detail_stream_id TEXT REFERENCES sync_streams(id),
   detail_captured_at_us INTEGER, raw_detail_json TEXT CHECK(raw_detail_json IS NULL OR json_valid(raw_detail_json))
 ) STRICT;
 CREATE TABLE workout_events (

@@ -17,7 +17,7 @@
 | 表/视图 | 主键 / 关系 | 内容与约束 |
 |---|---|---|
 | schema_migrations | version | migration checksum/应用时间；已发布内容不可改 |
-| instance_state | singleton=1 | server generation、data revision、query pause、timezone/policy version |
+| instance_state | singleton=1 | server generation、data/projection revision、query pause、timezone/policy version |
 | publishers | id + epoch | 单 active，换机 fence；旧 epoch 不可恢复上传 |
 | credentials | id | 高熵 token 的 SHA-256、role/scope/metrics/日期限制、撤销与到期 |
 | sync_streams | id | publisher/epoch/generation/kind/type、最后连续 seq、last query、状态 |
@@ -78,6 +78,10 @@ canonical sample hash由**服务端**计算：验证后的固定Go struct按字�
 父 quantity 样本保留 count、聚合 value 与 series_state。子点 ordinal 来自该次查询的稳定顺序；不按 timestamp 去重；同一微秒可有多个 point。generation 由客户端新建 UUID，chunks 可重复但同 key 不同值报 409。finalize 时 expected count、连续 ordinal 0..N-1、ordered digest 全匹配才 complete。
 
 series finalize 使用 chunks 清单摘要，避免跨语言浮点格式分歧：一个 `series_chunk` 独占一个enrichment batch；其chunk digest就是该batch完整未压缩body的SHA-256。按chunk_index升序拼接UTF-8 `chunk_index:digest\n`，再SHA-256得到manifest；服务端保存每块digest。expected point count、expected chunks、连续ordinal均独立校验。参考DDL的`series_chunks`存清单摘要，不存重复payload。新generation完成时同一事务把旧complete标superseded，再将新generation标complete；旧原始点保留到owner明确执行清理。
+
+component版本必须按`(writer_stream_id,seq)`解释，绝不能拿新手机seq=1和旧手机seq=200直接比大小。服务器先确认该stream属于active publisher/epoch/generation；同stream比较seq，不同active stream首个完整版本可替换旧stream版本。workouts存detail_stream_id+detail_revision；daily_snapshots已有writer_stream_id/seq；series存writer_stream_id+revision。
+
+新series generation只能由chunk_index=0建立，并原子设置samples.series_target_generation；旧pending标superseded，旧complete暂保留供带stale标记的诊断（默认查询仍partial/null）。随后chunk/finalize必须匹配target_generation；旧generation即使晚到也不得成为当前完整版本。已committed的旧batch重放只返回receipt、不重新激活。query_failed不标complete；永久not_exposed/unsupported可标unavailable并保留parent。
 
 workout detail 更新为一个有界完整对象（≤2 MiB，events/activities 各≤5000）。事件无独立 HK UUID 时按完整数组的 ordinal 主键，只在整组件更新事务内全量替换。超过上限显式 blocked，不能截断。统计 key 固定 metric + unit + min/max/avg/sum，未知 key 不参与推导。
 

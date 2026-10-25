@@ -39,11 +39,14 @@
 | T-WORKOUT-03 | 两个pause重叠/单边pause | 并集不重扣，单边uncertain |
 | T-SERIES-01 | 1001点，漏中间块/乱序/重放 | complete前不参与全部统计，finalize校验失败 |
 | T-SERIES-02 | finalize前删除parent | 任何晚到point都不复活parent |
+| T-SERIES-03 | 新generation已开始，旧generation迟到finalize | 拒绝激活旧generation，complete/current不倒退 |
+| T-REVISION-01 | 换手机后新stream seq1，旧detail seq200 | 按active stream身份替换，不能比较无关seq大小 |
 | T-HRR-01 | 样本够/少、负HRR、下一训练 | 符合公式；不足null，负数不归零 |
 | T-AGG-01 | 计算中有新raw修正 | CAS失败重排，不写过期投影 |
 | T-AUTH-01 | upload读/query写/revoke/过期 | 401/403，零健康数据 |
 | T-AUTH-02 | grant外metric/date/raw数据 | 403，不静默扩大或替换范围 |
 | T-QUERY-01 | 翻页期间revision变更 | cursor_stale，不能拼旧新页 |
+| T-QUERY-02 | raw不变但projection发布/政策变更 | cursor_stale，不能拼pending与已完成投影 |
 | T-LIMIT-01 | gzip bomb/重复JSON key/慢请求 | 有界拒绝，CPU/RSS不无界 |
 | T-MCP-01 | lifecycle、unknown tool、write tool | 标准握手/错误，无写工具、无SQL |
 | T-PRIVACY-01 | secret/payload/source文本置入各错误路径 | 捕获日志中完全找不到这些canary |

@@ -37,6 +37,8 @@
 12. OAuth重放revocation即使返回invalid_grant也必须提交，不能由通用错误rollback恢复危险token。
 13. MCP SDK v1.8.0的实际许可处于Apache/MIT迁移，已记录完整文本保留义务，未笼统称MIT。
 14. 配置query_enabled不能覆盖数据库restore pause，临时背景文件不能凌驾outbox真相。
+15. component版本按stream身份+seq比较，换机seq重置不会阻止新版本；series指定target generation防旧finalize覆盖。
+16. 分页同时绑定raw/projection/policy版本，聚合异步完成也不能导致分页混合视图。
 
 ## 待验证风险与关闭条件
 

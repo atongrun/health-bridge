@@ -147,7 +147,7 @@ raw values 的 `precision`=`sample|series_point|coalesced_parent|derived`。不�
 
 DailyMetric.statistics未适用字段统一null；n可以为0但不能因此把sum/min/mean变0。iOS日总量snapshot的n未知时为null并标snapshot precision，不虚构样本数。每条quality可覆盖envelope总质量；envelope是最差状态汇总，不能掩盖某一metric missing。source_selection输出configured/automatic_most_observations/healthkit_statistics，by_source结果使用仅本次响应内的source_1等标签区分，不携带设备身份。
 
-分页排序是 `(start_us, uuid, ordinal)`，summary 按 day；cursor 为 HMAC 保护的 query hash + grant hash + data_revision + 最后一条 key + expiry(15min)。请求期间 revision 变化返回409 cursor_stale，客户端重新从起点读，不拼接不一致页。grant/revocation 每页重验。数据较多返回 truncated 与 next_cursor，不能只截断字节；JSON output 最大1 MiB，单条超过上限返回明确错误。
+分页排序是`(start_us,uuid,ordinal)`，summary按day；cursor为HMAC保护的query hash+grant hash+server_generation+data_revision+projection_revision+policy_version+最后key+expiry(15min)。请求期间任一版本变化返回409 cursor_stale，客户端重新从起点读，不拼接不一致页。grant/revocation每页重验。数据较多返回truncated与next_cursor，不能只截断字节；JSON output最大1 MiB，单条超过上限返回明确错误。
 
 ## 5. MCP
 
