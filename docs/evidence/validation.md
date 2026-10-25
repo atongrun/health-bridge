@@ -1,5 +1,19 @@
 # 验证记录
 
+## S03a Go/SQLite 配置与权限（2026-10-25）
+
+构建/测试在 GitHub Actions（Go 1.27.3 + modernc.org/sqlite v1.61.0，CGO=0），部署到 tx-vps 见 [deployment-s03a.md](deployment-s03a.md)。
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI 40200600210/40200819154）：空库迁移、失败迁移回滚、只读连接拒写、未 verified profile 不能 enable、token 角色/撤销/到期、单 active publisher、900s profile 仅 on_demand |
+| go vet ./... | PASS |
+| CGO=0 交叉编译 | PASS：linux/amd64 + linux/arm64，静态链接、stripped |
+| go.mod/go.sum | 由 `go mod tidy` 生成并回填；复跑 verify 步骤 success |
+| tx-vps check-config/migrate | config ok；schema version 1 applied（幂等） |
+| tx-vps healthz | 200 `{"status":"ok"}`，no-store；服务 active |
+| 真实 token/健康数据/公网端口 | 未创建、未访问、未开放（S03b+） |
+
 ## S02 合成契约与边界夹具（2026-10-25）
 
 隔离venv安装requirements-design.txt后运行`scripts/check_contracts.py`与`scripts/check_docs.py --full`。本轮同时移除原生App路线残留目录`ios/`（仅含墓碑README，无文档引用，Git历史保留）。

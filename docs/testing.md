@@ -45,6 +45,8 @@ S02新增`scripts/check_contracts.py`（同样需要requirements-design.txt的�
 
 Go阶段运行go test ./...、go test -race ./...、go vet ./...，发行前govulncheck及跨架构CGO=0构建。没有Swift/xcodebuild测试计划。iPhone动作/字段/错误/文件/锁屏由S01/S04a真实执行并分别记录，不用CI假通过。
 
+S03a起 Go 测试与交叉编译在 `.github/workflows/go.yml` 执行（Go 1.27.3，不用本机 Go）；覆盖空库/失败迁移、只读拒写、profile gate、token 生命周期、单 active publisher。`go test -race` 与 `govulncheck` 仍待 S03b+ 补充到 CI。
+
 ## 真实验证与发布
 
 设备记录只含系统版本、动作名、字段有无/类型/unit/精度/条件与结论，无健康值/截图/token。无数据标no_visible_data不当“不支持”。使用真实健康窗口需要该次明确授权；synthetic HTTP探针不发送真实健康对象。

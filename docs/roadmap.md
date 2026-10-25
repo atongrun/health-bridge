@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约与边界夹具）已完成；S01仍待本人iPhone真机验证，S03–S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）与 S03a（Go/SQLite 配置与权限）已完成；S01仍待本人iPhone真机验证，S03b–S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -30,6 +30,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S03a — Go/SQLite配置与权限
 
 - 目标：Go/SQLite配置与权限。
+- 状态：已完成（2026-10-25）。Go 模块/CLI（check-config/migrate/serve 仅 healthz）、strict config、事务化 checksum 迁移、WAL/FULL 单写、SHA-256 token 角色/撤销/到期、单 active publisher、S01-verified profile enable gate 落地；CI 构建测试通过，二进制部署到 tx-vps（见 docs/evidence/deployment-s03a.md）。无 HTTP 业务上传。
 - 依赖/输入：S02；无需S01真实健康数据。
 - 文件边界：server/go.mod/go.sum、cmd/healthbridge、internal/config/store/auth、migrations。
 - 详细任务：固定依赖；strict config/migrations/checksum；WAL/FULL单writer；local admin/token；publisher epoch；profile验证与enable gate、scheduled任务量预算、900秒profile仅on_demand；无HTTP业务上传。
@@ -149,4 +150,4 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 
 ## 下一条明确任务
 
-> S02已完成。下一步：无设备时先执行S03a（Go/SQLite配置与权限，不依赖S01真实健康数据）；S01仍待本人iPhone按shortcuts-probe.md验证一个健康类型的字段/日期/单位/上限与合成本地配置读取，只记录能力结论，不安装Xcode、不做App，未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。
+> S02、S03a已完成。下一步：无设备时继续S03b（有限计划与原子快照接收，依赖S03a，需synthetic client端到端，不启用真实profile）；S01仍待本人iPhone按shortcuts-probe.md验证一个健康类型的字段/日期/单位/上限与合成本地配置读取，只记录能力结论，不安装Xcode、不做App，未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。
