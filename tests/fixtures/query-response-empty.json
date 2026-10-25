@@ -1,0 +1,27 @@
+{
+  "schema_version": "1",
+  "data": [],
+  "next_cursor": null,
+  "truncated": false,
+  "quality": {
+    "status": "no_visible_data",
+    "collection_method": "shortcuts_window_observation",
+    "identity_quality": "unverified",
+    "source_quality": "unknown",
+    "window_coverage": {
+      "observed_windows": 4,
+      "expected_windows": 6
+    },
+    "last_observed_at": null,
+    "last_attempt_at": "2026-01-01T23:15:00Z",
+    "method_version": "2026-10-25.1",
+    "limitations": [
+      "empty observation is not proof of deletion or zero"
+    ]
+  },
+  "range": {
+    "start_date": "2026-01-01",
+    "end_date": "2026-01-02"
+  },
+  "timezone": "Asia/Taipei"
+}

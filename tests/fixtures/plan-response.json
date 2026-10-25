@@ -1,0 +1,34 @@
+{
+  "status": "planned",
+  "protocol": "shortcuts-1",
+  "plan_id": "00000000-0000-4000-8000-000000000001",
+  "server_generation": "00000000-0000-4000-8000-000000000004",
+  "publisher_epoch": "00000000-0000-4000-8000-000000000005",
+  "expires_at": "2026-01-01T00:20:00Z",
+  "jobs": [
+    {
+      "job_id": "00000000-0000-4000-8000-000000000002",
+      "attempt_id": "00000000-0000-4000-8000-000000000003",
+      "profile_id": "synthetic_hr_15m",
+      "profile_version": 1,
+      "metric": "heart_rate",
+      "window": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": "2026-01-01T00:15:00Z"
+      },
+      "max_records": 1000
+    },
+    {
+      "job_id": "00000000-0000-4000-8000-000000000011",
+      "attempt_id": "00000000-0000-4000-8000-000000000012",
+      "profile_id": "synthetic_hr_15m",
+      "profile_version": 1,
+      "metric": "heart_rate",
+      "window": {
+        "start": "2026-01-01T00:15:00Z",
+        "end": "2026-01-01T00:30:00Z"
+      },
+      "max_records": 1000
+    }
+  ]
+}

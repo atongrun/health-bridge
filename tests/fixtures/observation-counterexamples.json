@@ -1,0 +1,133 @@
+{
+  "synthetic": true,
+  "contract": "contracts/shortcuts-observation.schema.json",
+  "cases": [
+    {
+      "id": "OBS-NEG-01",
+      "invariant": "read_state no_visible_data requires empty items",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "read_state": "no_visible_data"
+      }
+    },
+    {
+      "id": "OBS-NEG-02",
+      "invariant": "read_state observed requires at least one item",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "items": []
+      }
+    },
+    {
+      "id": "OBS-NEG-03",
+      "invariant": "overflow must be reported via failure endpoint, not a truncated snapshot",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "limit_reached": true
+      }
+    },
+    {
+      "id": "OBS-NEG-04",
+      "invariant": "protocol is fixed shortcuts-1",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "protocol": "1.0"
+      }
+    },
+    {
+      "id": "OBS-NEG-05",
+      "invariant": "unknown/legacy fields (deletions) are rejected",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "deletions": []
+      }
+    },
+    {
+      "id": "OBS-NEG-06",
+      "invariant": "items are capped at 1000, 1001 items are overflow not payload",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "items": "@repeat:501:tests/fixtures/synthetic-shortcuts-observation.json#/items"
+      }
+    },
+    {
+      "id": "OBS-NEG-07",
+      "invariant": "profile_version starts at 1",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "profile_version": 0
+      }
+    },
+    {
+      "id": "OBS-NEG-08",
+      "invariant": "query_limit is the fixed cap+1 probe",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "query_limit": 1000
+      }
+    },
+    {
+      "id": "OBS-NEG-09",
+      "invariant": "date-time values must be real timestamps",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "captured_at": "2026-02-30T00:00:00Z"
+      }
+    },
+    {
+      "id": "OBS-NEG-10",
+      "invariant": "exactly one typed payload per record",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "items.0.category": {
+          "label": "Asleep"
+        }
+      }
+    },
+    {
+      "id": "OBS-NEG-11",
+      "invariant": "workout payload requires the fixed field set, no partial workout",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "items.0.workout": {
+          "activity": "walking"
+        }
+    }
+    },
+    {
+      "id": "OBS-NEG-12",
+      "invariant": "missing required top-level fields are rejected",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "changes": {
+        "window": null
+      }
+    },
+    {
+      "id": "OBS-NEG-13",
+      "invariant": "records are attributed by start to [window.start, window.end); a record outside the window is rejected",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "check": "semantic:obs_window_membership",
+      "changes": {
+        "items.0.start": "2026-01-02T00:01:00Z"
+      }
+    },
+    {
+      "id": "OBS-NEG-14",
+      "invariant": "windows are fixed 900s/86400s UTC-aligned; an odd-width window is rejected",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "check": "semantic:obs_window_alignment",
+      "changes": {
+        "window.end": "2026-01-01T00:10:00Z"
+      }
+    },
+    {
+      "id": "OBS-NEG-15",
+      "invariant": "quantity unit must match the profile metric registry (heart_rate is count/min, not kcal)",
+      "based_on": "tests/fixtures/synthetic-shortcuts-observation.json",
+      "check": "semantic:obs_unit_matches_registry",
+      "changes": {
+        "items.0.quantity.unit": "kcal"
+      }
+    }
+  ]
+}

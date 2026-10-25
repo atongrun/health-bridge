@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** 当前所有S阶段均未完成；S01的步骤/模板已准备，不等于设备验证通过。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约与边界夹具）已完成；S01仍待本人iPhone真机验证，S03–S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -19,6 +19,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S02 — 合成契约与边界夹具
 
 - 目标：合成契约与边界夹具。
+- 状态：已完成（2026-10-25）。plan/ACK/failure/query/error契约与scripts/check_contracts.py落地，41个反例+多重集合[A,A,B]保留验证通过；结果见docs/evidence/validation.md。旧native schema不存在。
 - 依赖/输入：P00b；可在S01设备gate未完成时独立进行。
 - 文件边界：contracts/、tests/fixtures/、scripts/check_contracts.py。
 - 详细任务：补plan/ACK/failure/query的JSON Schema；正反例覆盖重复快照、多重集合、empty、overflow、profile错配、epoch/generation/lease、单位/日期。只做契约测试工具，不实现Go服务。
@@ -148,4 +149,4 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 
 ## 下一条明确任务
 
-> 先完成S01：按shortcuts-probe.md在本人iPhone系统快捷指令里验证一个健康类型的字段、日期/单位/上限与合成本地配置读取，只记录能力结论，不上传健康值，不安装Xcode，不做App。没有设备时保持S01 pending，只执行S02合成契约测试工具；不得实现业务服务或生成虚假verified profile。完成后更新HANDOFF与能力记录。
+> S02已完成。下一步：无设备时先执行S03a（Go/SQLite配置与权限，不依赖S01真实健康数据）；S01仍待本人iPhone按shortcuts-probe.md验证一个健康类型的字段/日期/单位/上限与合成本地配置读取，只记录能力结论，不安装Xcode、不做App，未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。

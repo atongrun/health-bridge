@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/atongrun/health-bridge/contracts/failure-report.schema.json",
+  "title": "Shortcuts attempt failure report (shortcuts-1)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "protocol": {
+      "const": "shortcuts-1"
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "reason": {
+      "enum": [
+        "overflow",
+        "missing_field",
+        "query_failed",
+        "profile_mismatch"
+      ]
+    }
+  },
+  "required": [
+    "protocol",
+    "attempt_id",
+    "reason"
+  ]
+}

@@ -37,7 +37,11 @@
 
 ## 当前脚本范围
 
-本轮--full：机器schema自检、2正例/10反例、18表建库与FK/integrity、5个DDL负面案例，以及重复观测两行可保存。它不测试lease/事务业务实现、网络重试、语义hash、所有scope或真实单位转换。这些在S02/S03及对应阶段建立。
+基础检查`python3 scripts/check_docs.py`；完整结构检查先在临时venv安装requirements-design.txt，再`python scripts/check_docs.py --full`。后者用成熟jsonschema Draft202012Validator，并开启FormatChecker，不自行实现完整JSON Schema引擎。它仍不是Go事务/真实Shortcuts运行测试。
+
+S02新增`scripts/check_contracts.py`（同样需要requirements-design.txt的隔离venv）：meta-schema自检全部契约、正例通过、观察与服务反例按预期拒绝、重复JSON key拒绝、跨消息plan/job/attempt/generation链一致、[A,A,B]多重集合3条保留、业务不变量分类报告。其中字段间关系（ACK count相等、窗口归属/对齐、单位注册表）作为语义规则分类，因为JSON Schema不能比较兄弟字段。
+
+本轮--full：机器schema自检、2正例/10反例、18表建库与FK/integrity、5个DDL负面案例，以及重复观测两行可保存。S02另固化plan/ACK/failure/query/error契约与41个反例。它不测试lease/事务业务实现、网络重试、语义hash、所有scope或真实单位转换。这些在S03及对应阶段建立。
 
 Go阶段运行go test ./...、go test -race ./...、go vet ./...，发行前govulncheck及跨架构CGO=0构建。没有Swift/xcodebuild测试计划。iPhone动作/字段/错误/文件/锁屏由S01/S04a真实执行并分别记录，不用CI假通过。
 

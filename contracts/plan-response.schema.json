@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/atongrun/health-bridge/contracts/plan-response.schema.json",
+  "title": "Shortcuts plan response (shortcuts-1)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "planned",
+        "not_configured"
+      ]
+    },
+    "protocol": {
+      "const": "shortcuts-1"
+    },
+    "plan_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "server_generation": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "publisher_epoch": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "jobs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "profile_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "profile_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "metric": {
+            "$ref": "https://github.com/atongrun/health-bridge/contracts/shortcuts-observation.schema.json#/properties/metric"
+          },
+          "window": {
+            "$ref": "https://github.com/atongrun/health-bridge/contracts/shortcuts-observation.schema.json#/properties/window"
+          },
+          "max_records": {
+            "const": 1000
+          }
+        },
+        "required": [
+          "job_id",
+          "attempt_id",
+          "profile_id",
+          "profile_version",
+          "metric",
+          "window",
+          "max_records"
+        ]
+      }
+    }
+  },
+  "required": [
+    "status",
+    "protocol",
+    "plan_id",
+    "server_generation",
+    "publisher_epoch",
+    "expires_at",
+    "jobs"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "not_configured"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "jobs": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}

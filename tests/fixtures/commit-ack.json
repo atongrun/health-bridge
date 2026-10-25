@@ -1,0 +1,15 @@
+{
+  "status": "committed",
+  "protocol": "shortcuts-1",
+  "server_generation": "00000000-0000-4000-8000-000000000004",
+  "publisher_epoch": "00000000-0000-4000-8000-000000000005",
+  "plan_id": "00000000-0000-4000-8000-000000000001",
+  "job_id": "00000000-0000-4000-8000-000000000002",
+  "attempt_id": "00000000-0000-4000-8000-000000000003",
+  "snapshot_id": "00000000-0000-4000-8000-000000000006",
+  "received_count": 2,
+  "stored_count": 2,
+  "read_state": "observed",
+  "observation_revision": 3,
+  "projection_state": "pending"
+}

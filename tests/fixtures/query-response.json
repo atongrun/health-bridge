@@ -1,0 +1,94 @@
+{
+  "schema_version": "1",
+  "data": [
+    {
+      "kind": "daily",
+      "daily": {
+        "day": "2026-01-01",
+        "metric": "step_count",
+        "unit": "count",
+        "min": 0,
+        "mean": 400,
+        "max": 1200,
+        "sum": 8000,
+        "latest": {
+          "value": 1200,
+          "measured_at": "2026-01-01T21:00:00Z"
+        },
+        "n": 4,
+        "quality": {
+          "status": "observed_partial",
+          "collection_method": "shortcuts_window_observation",
+          "identity_quality": "unverified",
+          "source_quality": "unknown",
+          "window_coverage": {
+            "observed_windows": 4,
+            "expected_windows": 6
+          },
+          "last_observed_at": "2026-01-01T23:15:00Z",
+          "last_attempt_at": "2026-01-01T23:15:00Z",
+          "method_version": "2026-10-25.1",
+          "limitations": [
+            "shortcuts window observation is not full HealthKit coverage",
+            "source identity is not verified"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "quantity",
+      "quantity": {
+        "start": "2026-01-01T00:01:00Z",
+        "end": null,
+        "value": 60,
+        "unit": "count/min",
+        "time_precision": "second"
+      }
+    },
+    {
+      "kind": "sleep",
+      "sleep": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": "2026-01-01T00:30:00Z",
+        "stage": "asleep_core"
+      }
+    },
+    {
+      "kind": "workout",
+      "workout": {
+        "observation_id": "00000000-0000-4000-8000-000000000050",
+        "start": "2026-01-01T07:00:00Z",
+        "end": "2026-01-01T07:30:00Z",
+        "activity": "walking",
+        "duration_seconds": 1800,
+        "active_energy_kcal": 150,
+        "distance_m": 3500,
+        "average_heart_rate_bpm": 110,
+        "maximum_heart_rate_bpm": 135
+      }
+    }
+  ],
+  "next_cursor": null,
+  "truncated": false,
+  "quality": {
+    "status": "observed_partial",
+    "collection_method": "shortcuts_window_observation",
+    "identity_quality": "unverified",
+    "source_quality": "unknown",
+    "window_coverage": {
+      "observed_windows": 4,
+      "expected_windows": 6
+    },
+    "last_observed_at": "2026-01-01T23:15:00Z",
+    "last_attempt_at": "2026-01-01T23:15:00Z",
+    "method_version": "2026-10-25.1",
+    "limitations": [
+      "shortcuts window observation is not full HealthKit coverage"
+    ]
+  },
+  "range": {
+    "start_date": "2026-01-01",
+    "end_date": "2026-01-02"
+  },
+  "timezone": "Asia/Taipei"
+}

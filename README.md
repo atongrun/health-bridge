@@ -48,4 +48,4 @@ flowchart LR
 
 现在可以运行 `python3 scripts/check_docs.py` 和 `git diff --check`，仅验证设计材料。没有运行Go业务、iPhone探针或MCP端到端测试。原创内容[MIT](LICENSE)，依赖与移植见[notices](THIRD_PARTY_NOTICES.md)。
 
-完整JSON Schema检查在开发/CI的隔离Python环境安装`requirements-design.txt`后运行`python scripts/check_docs.py --full`；不是iPhone使用前提。
+完整JSON Schema检查在开发/CI的隔离Python环境安装`requirements-design.txt`后运行`python scripts/check_docs.py --full`；S02新增`python scripts/check_contracts.py`固化plan/ACK/failure/query/error契约与合成正反例，同样只在该隔离环境运行，不是iPhone使用前提。

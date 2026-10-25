@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/atongrun/health-bridge/contracts/commit-ack.schema.json",
+  "title": "Shortcuts commit ACK (shortcuts-1)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "const": "committed"
+    },
+    "protocol": {
+      "const": "shortcuts-1"
+    },
+    "server_generation": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "publisher_epoch": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "plan_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "job_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "received_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "stored_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "read_state": {
+      "enum": [
+        "observed",
+        "no_visible_data"
+      ]
+    },
+    "observation_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "projection_state": {
+      "enum": [
+        "current",
+        "pending"
+      ]
+    }
+  },
+  "required": [
+    "status",
+    "protocol",
+    "server_generation",
+    "publisher_epoch",
+    "plan_id",
+    "job_id",
+    "attempt_id",
+    "snapshot_id",
+    "received_count",
+    "stored_count",
+    "read_state",
+    "observation_revision",
+    "projection_state"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "read_state": {
+            "const": "observed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "received_count": {
+            "minimum": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "received_count": {
+            "const": 0
+          }
+        }
+      }
+    }
+  ]
+}

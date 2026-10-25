@@ -15,5 +15,7 @@ jobs:
           .venv/bin/python -m pip install --disable-pip-version-check -r requirements-design.txt
       - name: Check documentation and synthetic design artifacts
         run: .venv/bin/python scripts/check_docs.py --full
+      - name: Check shortcuts-1 plan/ACK/failure/query/error contracts
+        run: .venv/bin/python scripts/check_contracts.py
       - name: Check whitespace
         run: git show --format= --check HEAD

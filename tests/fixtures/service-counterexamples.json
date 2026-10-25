@@ -1,0 +1,246 @@
+{
+  "synthetic": true,
+  "description": "Synthetic contract counterexamples for plan/ACK/failure/query/error schemas. Each case applies 'changes' to a valid 'base' object and must be REJECTED by the named schema. '.'-separated paths set a top-level or nested field; ':delete' removes a key. All identifiers are synthetic UUIDs.",
+  "cases": [
+    {
+      "id": "SVC-NEG-01",
+      "schema": "contracts/plan-request.schema.json",
+      "base": {
+        "protocol": "shortcuts-1"
+      },
+      "changes": {
+        "max_jobs": 8
+      },
+      "invariant": "plan request carries no other fields; server controls job count"
+    },
+    {
+      "id": "SVC-NEG-02",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "changes": {
+        "jobs": "@repeat:9:tests/fixtures/plan-response.json#/jobs"
+      },
+      "invariant": "a plan carries at most 8 jobs"
+    },
+    {
+      "id": "SVC-NEG-03",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "changes": {
+        "jobs.0.metric": "blood_pressure"
+      },
+      "invariant": "metrics outside the registry whitelist are rejected"
+    },
+    {
+      "id": "SVC-NEG-04",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "changes": {
+        "status": "not_configured"
+      },
+      "invariant": "not_configured must carry zero jobs"
+    },
+    {
+      "id": "SVC-NEG-05",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "changes": {
+        "jobs.0.max_records": 2000
+      },
+      "invariant": "max_records is the fixed 1000 cap, not negotiable"
+    },
+    {
+      "id": "SVC-NEG-06",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "changes": {
+        "plan_id": "not-a-uuid"
+      },
+      "invariant": "server ids are UUIDs; opaque strings cannot be spoofed into ids"
+    },
+    {
+      "id": "SVC-NEG-07",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "changes": {
+        "protocol": "shortcuts-2"
+      },
+      "invariant": "unknown protocol version is rejected"
+    },
+    {
+      "id": "SVC-NEG-08",
+      "schema": "contracts/commit-ack.schema.json",
+      "base": "tests/fixtures/commit-ack.json",
+      "changes": {
+        "read_state": "no_visible_data"
+      },
+      "invariant": "ACK counts must stay consistent with read_state; observed cannot report count 0"
+    },
+    {
+      "id": "SVC-NEG-09",
+      "schema": "contracts/commit-ack.schema.json",
+      "base": "tests/fixtures/commit-ack-empty.json",
+      "changes": {
+        "received_count": 1
+      },
+      "invariant": "an empty observation ACKs zero items; any 2xx with items here would fake success"
+    },
+    {
+      "id": "SVC-NEG-10",
+      "schema": "contracts/commit-ack.schema.json",
+      "check": "semantic:ack_counts_equal",
+      "base": "tests/fixtures/commit-ack.json",
+      "changes": {
+        "stored_count": 1
+      },
+      "invariant": "stored_count equals the full snapshot content even when storage is reused (field-to-field equality is a semantic rule; JSON Schema cannot compare siblings)"
+    },
+    {
+      "id": "SVC-NEG-11",
+      "schema": "contracts/commit-ack.schema.json",
+      "base": "tests/fixtures/commit-ack.json",
+      "changes": {
+        "status": "recorded"
+      },
+      "invariant": "only status=committed is a commit ACK; failure reporting uses another contract"
+    },
+    {
+      "id": "SVC-NEG-12",
+      "schema": "contracts/commit-ack.schema.json",
+      "base": "tests/fixtures/commit-ack.json",
+      "changes": {
+        "client_job_id": "anything"
+      },
+      "invariant": "ACK carries no client-supplied aliases or extra fields"
+    },
+    {
+      "id": "SVC-NEG-13",
+      "schema": "contracts/failure-report.schema.json",
+      "base": "tests/fixtures/failure-report.json",
+      "changes": {
+        "reason": "battery_low"
+      },
+      "invariant": "failure reasons are the fixed closed set"
+    },
+    {
+      "id": "SVC-NEG-14",
+      "schema": "contracts/failure-report.schema.json",
+      "base": "tests/fixtures/failure-report.json",
+      "changes": {
+        "sample_values": [60, 62]
+      },
+      "invariant": "failure reports carry no health values"
+    },
+    {
+      "id": "SVC-NEG-15",
+      "schema": "contracts/error.schema.json",
+      "base": "tests/fixtures/error-run-busy.json",
+      "changes": {
+        "error.code": "internal_server_error_detailed"
+      },
+      "invariant": "error codes are the fixed closed set"
+    },
+    {
+      "id": "SVC-NEG-16",
+      "schema": "contracts/error.schema.json",
+      "base": "tests/fixtures/error-run-busy.json",
+      "changes": {
+        "error.request_id": null
+      },
+      "invariant": "request_id is always present for support correlation"
+    },
+    {
+      "id": "SVC-NEG-17",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "quality.full_healthkit_coverage": true
+      },
+      "invariant": "V1 must never claim full HealthKit coverage"
+    },
+    {
+      "id": "SVC-NEG-18",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "quality.collection_method": "native_app_sync"
+      },
+      "invariant": "collection method is the shortcuts window observation, not a native claim"
+    },
+    {
+      "id": "SVC-NEG-19",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "data.0.daily.value": 8000
+      },
+      "invariant": "daily DTO has the fixed field set; no raw passthrough"
+    },
+    {
+      "id": "SVC-NEG-20",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "data.1.quantity": null,
+        "data.1.kind": "daily",
+        "data.1.daily": null
+      },
+      "invariant": "each row's kind selects exactly one typed DTO"
+    },
+    {
+      "id": "SVC-NEG-21",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "data.3.workout.workout_uuid": "00000000-0000-4000-8000-000000000050"
+      },
+      "invariant": "the opaque reference is observation_id, not a workout UUID claim"
+    },
+    {
+      "id": "SVC-NEG-22",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "data.3.workout.source_json": "{\"source\":\"Apple Watch\"}"
+      },
+      "invariant": "sensitive source_json is not passed through to query results"
+    },
+    {
+      "id": "SVC-NEG-23",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "data.3.workout.distance_m": -100
+      },
+      "invariant": "non-negative physical quantities; no negative distance"
+    },
+    {
+      "id": "SVC-NEG-24",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "data.2.sleep.stage": ""
+      },
+      "invariant": "sleep stage labels are non-empty"
+    },
+    {
+      "id": "SVC-NEG-25",
+      "schema": "contracts/query-response.schema.json",
+      "base": "tests/fixtures/query-response.json",
+      "changes": {
+        "quality.window_coverage.observed_windows": "4/6"
+      },
+      "invariant": "window coverage is explicit counts, not a display string"
+    },
+    {
+      "id": "SVC-NEG-26",
+      "schema": "contracts/plan-response.schema.json",
+      "base": "tests/fixtures/plan-response.json",
+      "check": "semantic:plan_window_alignment",
+      "changes": {
+        "jobs.0.window.end": "2026-01-01T00:10:00Z"
+      },
+      "invariant": "planned windows are fixed 900s/86400s UTC-aligned spans"
+    }
+  ]
+}
