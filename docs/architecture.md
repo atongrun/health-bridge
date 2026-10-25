@@ -1,89 +1,57 @@
-# 最终架构
+# 架构：Shortcuts-first
 
-状态：设计基线，2026-10-25。本文规定模块边界；同步状态机、字段和算法分别以 ios-sync、data-schema、api、aggregation 为准。
+当前规范为ADR-007，协议shortcuts-1。历史原生基线不是开发输入。系统快捷指令→HTTPS→自有VPS一个Go进程→SQLite；只读API/MCP复用QueryService。不做账号系统、健康云、Web dashboard、微服务、第三方快捷指令辅助App。
 
-## 1. 范围与非目标
+## 模块
 
-一个自然人、一个自有 VPS、一个主动上传 iPhone；Apple Watch 不运行自研 watchOS App。Watch 已采集的数据经 Apple 同步到 iPhone，客户端读取 iPhone HealthKit 可见记录。HealthKit 记录可来自多代 Watch、iPhone、体重秤或用户手工输入，必须保留 provenance。
+| 目录（后续实现） | 责任 |
+|---|---|
+| shortcuts/ | 无secret模板、动作说明、能力profile和S01记录；不是Swift工程 |
+| server/internal/config | strict JSON；不安全/未知字段失败 |
+| server/internal/auth | upload/query隔离，issuer/epoch、metric/date scope、撤销 |
+| server/internal/collection | 有限plan、窗口重读/回填、lease、attempt顺序、capability profile |
+| server/internal/ingest | observed/no_visible_data验证、快照多重集合指纹、原子commit与ACK |
+| server/internal/store | 参数化SQL、migration、WAL、单writer/独立只读连接 |
+| server/internal/aggregate | 选定窗口快照、每日质量与重算，不跨重读累加 |
+| server/internal/query | 有界只读DTO、scope、coverage/freshness；禁止任意SQL |
+| server/internal/httpapi / mcp | 适配器，共用授权和query层；MCP用官方SDK |
+| server/internal/admin / oauth | local Unix socket管理；可选Fosite，单owner consent |
 
-不做医疗诊断、多人 SaaS、第三方可穿戴云接入、训练记录 App、实时心电、GPS 轨迹、FHIR、Web dashboard、向量检索或自主健康建议推送。新增类型必须先进入指标注册表和契约。
+## 一次运行
 
-## 2. 部署组件
+1. 用户设置自有HTTPS origin与独立upload credential；配置只能保存在已验证的iPhone本地文件，不能进入分享模板/iCloud。首次Health权限由系统弹窗处理。
+2. 快捷指令POST plan；服务器从已验证且启用的profiles选择最多8个有界窗口，分配15分钟lease及opaque attempt IDs。并发第二次触发返回run_busy，不需要手机文件锁。
+3. 对每job调用系统健康读取动作（查找上限1001）。超过1000、缺必要字段、错误或未授权疑点均不能作为成功空窗上传。
+4. 形成typed JSON，POST observations。整个窗口在同一事务保存；无需跨请求暂存多页健康数据。单窗口过大则overflow，不能偷偷分页丢失同时间记录。
+5. ACK核对committed、generation、epoch、attempt/job、数量。网络失败可能使快捷指令中止；lease过期后新attempt重新查询。服务端仍保留此前成功commit。
+6. 聚合只取每个窗口的最新成功观测。失败/空读取/超时的窗不能用旧数据冒充新鲜；历史快照仅用于owner审计或明确stale诊断。
 
-```mermaid
-flowchart TB
-  subgraph iPhone
-    HK[HealthKit read-only] --> R[Type registry / bounded reader]
-    R --> O[(GRDB outbox + anchors)]
-    O --> U[URLSession uploader]
-    T[Observer / BGTask / foreground / AppIntent] --> R
-  end
-  U -->|HTTPS| C[Caddy on own VPS]
-  subgraph VPS
-    C --> S[healthbridge single Go process]
-    S --> IN[ingest validator + writer]
-    IN --> DB[(SQLite WAL)]
-    DB --> AG[bounded aggregation worker]
-    AG --> DB
-    DB --> QS[typed read service]
-    QS --> API[HTTPS read API]
-    QS --> MCP[read-only MCP adapter]
-    AU[optional embedded OAuth / local CLI] --> S
-  end
-```
+## 简化与代价
 
-API / MCP 适配器仅接收 `QueryService`，不持有 writer；writer 不接受外部 SQL。读层通过单独 `mode=ro` 连接并设置 `query_only=ON`。同一进程并不提供 OS 级隔离，依靠固定查询、授权和测试降低风险；不声称能抵御主进程任意代码执行。
+没有手机端持久健康队列、HealthKit anchors、native SDK、删除事件、series enrichment、reconciliation UUID inventory。服务器依靠计划和immutable snapshots控制重复和重跑。它保证已ACK快照持久化与幂等，不保证手机从未上传成功的数据或全部历史更正。
 
-## 3. 服务端边界
+hot window默认最近7天，按轮转公平刷新；显式历史回填每次最多31天。计划中未ACK窗口持续保留，不能只按“最大时间戳”跳过。已成功但退出hot范围的窗口仍可能发生Apple端修正，需owner触发重扫；全历史绝对一致不承诺。
 
-| 目录（后续建立） | 责任 | 不允许 |
-|---|---|---|
-| `server/cmd/healthbridge` | serve / migrate / token / pair / backup / restore / export / delete / oauth 子命令 | HTTP 远程管理 shell |
-| `server/internal/config` | 严格 JSON 配置，未知键/不安全绑定失败 | token 写进普通配置 |
-| `server/internal/auth` | 上传/查询凭据，范围/期限/撤销，publisher fence | 以设备声明决定权限 |
-| `server/internal/store` | SQLite、事务、参数化 SQL、迁移 | 通用 ORM、远程 DB |
-| `server/internal/ingest` | 验证整个 batch、receipt、序列、tombstone、dirty queue | 部分成功 ACK |
-| `server/internal/aggregate` | 可重建投影、版本化算法、源选择 | 覆盖原始记录 |
-| `server/internal/query` | 固定 DTO、范围/分页/数据质量 | 任意 SQL/任意指标名 |
-| `server/internal/httpapi` | 认证、限额、契约响应 | 输出内部错误/样本到日志 |
-| `server/internal/mcp` | 官方 SDK 工具封装与 metadata | 与 REST 不同的授权逻辑 |
-| `server/internal/oauth` | Fosite 适配、单 owner consent、持久凭据 | 密码登录/公有注册/自制 OAuth 协议 |
-| `server/internal/admin` | 本地 Unix socket / CLI 操作 | 无认证网络端口 |
+## SQLite
 
-Go 标准库负责路由、JSON、TLS 后端连接语义、hash、随机数、日志。SQLite driver、MCP SDK、OAuth 库是明确的依赖例外；iOS 使用 GRDB 管理事务。配置用 JSON，不引入 YAML 解析库。
+modernc driver+database/sql，WAL、synchronous=FULL、foreign_keys=ON、busy_timeout=5000；一个写连接、最多4读连接，同机本地磁盘，禁NFS/多副本共享库。读层mode=ro+query_only，MCP不持writer。固定窗口上限1000 records/2MiB，handler30s/query5s，有限writer队列。
 
-## 4. 为什么 Go + SQLite
+原始观测变化与dirty标记同事务；worker以revision做CAS，投影提交提升projection_revision。查询cursor绑定generation/observation_revision/projection_revision/policy_version/grant，任何变化要求重新分页。
 
-单人批量写入、原始记录按时间索引、汇总查询的工作负载适合 SQLite；WAL 支持读写并行但仍只有一个 writer。采用一个写连接、最多 4 个读连接、短事务、批次 500 条、离线重试；不会把“SQLite”当成无限并发数据库。[SQLite 适用场景](https://sqlite.org/whentouse.html)、[WAL](https://sqlite.org/wal.html)。
+容量测试目标仍是1vCPU/1GiB机器上进行合成压测，不能承诺实测前的性能。原始snapshot保留多版本会增加空间；相同多重集合只存一份，receipt仅存hash/计数，显式清理历史要owner操作。不自动采购存储或迁移数据库。
 
-数据库必须位于 VPS 本地文件系统，不放 NFS/SMB。`foreign_keys=ON`、`journal_mode=WAL`、`synchronous=FULL`、`busy_timeout=5000`，每个连接初始化相关 pragma。聚合写入走同一 writer queue，前台 ingest 优先，队列满返回 503。服务仅一实例，启动持有进程锁；不做多副本共享 SQLite。
+## 数据身份和来源
 
-容量是待测预算：1 vCPU/1 GiB RAM 是首轮测试目标，不是最低性能承诺；按 1000 万合成样本压测，记录磁盘 bytes/record、p95 ingest、查询与 WAL 增长。参考目标：500 条提交 p95 < 2 秒、31 天汇总 p95 < 1 秒、RSS < 256 MiB（不含 OS cache），测试环境必须注明。达到瓶颈先修索引和事务，不自动迁移 PostgreSQL。
+快捷指令没暴露UUID就native_id=null，source_label不可用就null；不能把记录hash伪装成HK UUID。内部身份为snapshot_id+ordinal。一次窗口内两个完全相同记录仍存两行；重复快照只更新观察freshness，不改变其multiplicity。不同窗口通过start归属防交叠；profile改变不能混合统计。
 
-## 5. 数据分层与一致性
+## 恢复
 
-- 原始层：HealthKit UUID、规范单位转换后的 Float64、原始语义、时间、source/device、选定 metadata、quantity series、workout 事件。不是传感器底层原始波形；HealthKit 已处理/合并的数据无法还原。
-- 事实控制层：tombstones、publisher epoch、stream checkpoint、batch receipts、restore generation。删除先行且永久抑制旧 UUID。
-- 投影层：daily metrics / sleep sessions / workout details / recovery；可重建、有算法版本。原始写入与 dirty 标记同一事务，计算在提交后进行。
-- 质量层：query succeeded、no visible data、blocked、historical range、series pending、reconciliation required。没有能证明“用户没授权”的布尔 read permission。
+恢复备份后更换generation、撤销旧credential/session并暂停query；重新授权后重新计划窗口。旧ACK/attempt不能写回新库。新观察与备份历史分开标注，owner明确允许后才开放历史stale数据；不能假装从Apple还原已消失记录。
 
-同步保证：**在 HealthKit 当前可见、数据可读取、outbox 可持久化、网络最终恢复的前提下，at-least-once 传输 + 幂等提交**。server ACK 不等于聚合已重算；响应给出 projection 状态。不使用 exactly-once 或无条件完整备份宣传。
+## 自动化容量与新鲜度政策
 
-## 6. 数据流
+profile.mode=scheduled|on_demand；900秒密集profile只允许on_demand，不加入默认七天自动全量刷新。owner显式选择有限范围（上限31天且先展示job数量）才生成该类job；按需不等于实时训练监测。
 
-1. 用户本地 CLI 生成一次性 pairing code；iPhone 验证 VPS HTTPS 域名并兑换仅上传凭据。
-2. 用户在系统授权页选择读取类型。客户端逐类型 anchored page，完整序列化，事务保存 outbox 和 read anchor。
-3. Uploader 发送同一批次的稳定字节；服务器验证后原子入库；ACK 含 digest/epoch/seq。
-4. iPhone 事务推进 ack anchor 并删掉已确认队列；失败保留并按类别退避。
-5. 聚合 worker 消费 dirty days，按版本和来源政策重建，CAS 检查数据 revision，避免写回过期汇总。
-6. 查询凭据按 scope、metrics、日期和最大点数限制返回；AI 不接触数据库、完整导出或原始 metadata。
+scheduled先启用1–3个低密度86400秒profile；今天/昨天目标24h重读，其余hot7天窗口每7天轮转检查，未成功窗口和显式backfill保持pending。启用时计算新增/刷新/backfill配额与实测可执行job预算，不够就缩小范围或显式补跑，不宣称每天一次能完成所有指标。
 
-## 7. 不做多上传者冲突算法
-
-服务保存一个 active `publisher_id + epoch`。更换手机由本地管理命令撤销旧上传凭据并创建新 epoch；所有旧批次被拒。Watch/source 不是 publisher。新手机重新从 nil anchor 回填（服务器 UUID 去重），不是恢复旧手机的 opaque anchor。
-
-重装、健康授权窗口变化、query predicate 改动、服务端灾难恢复都需要新的 stream generation。读 anchor 只属于当前 iPhone、类型、predicate、schema 和 destination identity。不得跨目标服务器复制。
-
-## 8. 隐私与低维护
-
-服务不主动调用 AI；没有 LLM API key 配置。DNS/ACME 仅用于域名和证书，不含健康数据。默认直接解析 VPS，不启用 TLS 终止在第三方的 CDN/tunnel。备份只在 VPS 或用户 Apple 设备上，默认加密且不云同步。详细威胁模型、删除和恢复流程见 security/deployment。
+freshness以窗口计划为准：last_committed距离上次期望刷新超过相应24h/7天+12h grace才标stale；失败/empty立即单独标识。离开hot范围且没有明确刷新计划的历史窗next_due=null，结果限制注明historical_not_rechecked和真实observed_at，不能称今日核验；不是所有旧记录一律36h后消失。按需尚未完成的范围为pending，执行结束后同样以历史观测表述。

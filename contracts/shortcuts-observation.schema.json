@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/atongrun/health-bridge/contracts/shortcuts-observation.schema.json",
+  "title": "Shortcuts window observation (design)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "protocol": {
+      "const": "shortcuts-1"
+    },
+    "plan_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "job_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "server_generation": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "publisher_epoch": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "profile_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "metric": {
+      "enum": [
+        "active_energy",
+        "step_count",
+        "apple_exercise_time",
+        "heart_rate",
+        "hrr1_native",
+        "resting_hr",
+        "hrv_sdnn",
+        "vo2_max",
+        "walking_hr",
+        "respiratory_rate",
+        "oxygen_saturation",
+        "wrist_temperature",
+        "body_mass",
+        "height",
+        "swimming_stroke_count",
+        "distance_swimming",
+        "distance_walking_running",
+        "distance_cycling",
+        "distance_wheelchair",
+        "distance_downhill_snow_sports",
+        "sleep",
+        "workout"
+      ]
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "read_state": {
+      "enum": [
+        "observed",
+        "no_visible_data"
+      ]
+    },
+    "query_limit": {
+      "const": 1001
+    },
+    "limit_reached": {
+      "const": false
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$"
+          },
+          "end": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "time_precision": {
+            "enum": [
+              "second",
+              "millisecond",
+              "microsecond",
+              "unknown"
+            ]
+          },
+          "source_label": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "native_id": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantity": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "value",
+                  "unit"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "label"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workout": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "activity": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "duration_seconds": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "active_energy_kcal": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "distance_m": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "average_heart_rate_bpm": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "maximum_heart_rate_bpm": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "activity",
+                  "duration_seconds",
+                  "active_energy_kcal",
+                  "distance_m",
+                  "average_heart_rate_bpm",
+                  "maximum_heart_rate_bpm"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "time_precision",
+          "source_label",
+          "native_id",
+          "quantity",
+          "category",
+          "workout"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "quantity": {
+                "type": "object"
+              },
+              "category": {
+                "type": "null"
+              },
+              "workout": {
+                "type": "null"
+              }
+            }
+          },
+          {
+            "properties": {
+              "quantity": {
+                "type": "null"
+              },
+              "category": {
+                "type": "object"
+              },
+              "workout": {
+                "type": "null"
+              }
+            }
+          },
+          {
+            "properties": {
+              "quantity": {
+                "type": "null"
+              },
+              "category": {
+                "type": "null"
+              },
+              "workout": {
+                "type": "object"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "protocol",
+    "plan_id",
+    "job_id",
+    "attempt_id",
+    "server_generation",
+    "publisher_epoch",
+    "profile_id",
+    "profile_version",
+    "metric",
+    "window",
+    "captured_at",
+    "read_state",
+    "query_limit",
+    "limit_reached",
+    "items"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "read_state": {
+            "const": "observed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "items": {
+            "minItems": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "items": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}

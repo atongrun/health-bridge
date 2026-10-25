@@ -1,91 +1,57 @@
-# VPS 部署、升级与恢复
+# 部署、升级与恢复
 
-**本轮只有设计，没有 release 或安装脚本。以下命令定义后续 CLI 目标，不可当作现在已可运行。** P11 实现并用临时目录/测试 VM 验收后再发布。不会在本轮修改任何 VPS。
+**本轮只有文档/契约，不部署服务、不创建正式快捷指令。以下是S08需实现的操作契约，不是现成可运行命令。** 采集端不需要Xcode、Apple开发者会员、商店上架或自签App。
 
-## 1. 最小部署
+## VPS
 
-Linux amd64/arm64，本地 ext4/xfs SSD，1个 Go 进程+SQLite+同机 Caddy。初测预算1vCPU/1GiB；磁盘按实测 bytes/sample×记录数×索引/备份余量规划，建议至少留数据库3倍空闲空间用于备份/迁移，installer 检查空间，不把建议当保证。
+Linux amd64/arm64、Go单binary+本地SQLite+同机Caddy。参考测试机1vCPU/1GiB，不作未测最低性能承诺。本地SSD，不放NFS；至少预留备份/迁移所需空间（目标数据库3倍余量），不足则停止升级。
 
-DNS A/AAAA 直指自己的 VPS；若没有可用 IPv6，不发布错误 AAAA。禁用 CDN代理/tunnel/TLS中转。开放443，80仅ACME/重定向，SSH按用户原策略；不自动改已有防火墙或抢占其他服务端口。
+DNS直连自有VPS，正确A/AAAA；443公开、80仅证书/HTTPS重定向，SSH按owner原策略，不抢已有端口/改已有防火墙。禁健康数据经过第三方CDN/TLS终止/tunnel。
 
-目录：
+目录：`/opt/healthbridge/releases/<version>/healthbridge`、current symlink；`/etc/healthbridge/config.json` 0640；`/var/lib/healthbridge/health.db`0600及backups0700；`/run/healthbridge/admin.sock`0600。服务用户无交互shell，仅state目录可写。
 
-```text
-/opt/healthbridge/releases/<version>/healthbridge
-/opt/healthbridge/current -> releases/<version>
-/etc/healthbridge/config.json          root:healthbridge 0640
-/etc/healthbridge/oauth-secret         healthbridge 0600（可选）
-/var/lib/healthbridge/health.db         healthbridge 0600
-/var/lib/healthbridge/backups/          0700
-/run/healthbridge/admin.sock           0600
-```
+## 首次安装目标
 
-service user 无交互 shell，不允许写安装目录。Caddy 配置使用 `health.example.com { reverse_proxy 127.0.0.1:8080 }`；不打开 access payload logging，不注册静态文件目录。
+发行包有固定版本/checksum/依赖notice，installer支持dry-run、重复安装、端口/磁盘/权限preflight。下载后验证本地包，不使用不可审查curl|sudo sh。
 
-## 2. 一次初始化（未来 P11）
+目标命令：install --dry-run → install → migrate → serve → collection profile enable（仅S01 verified）→ token create --role upload。真正token仅本机显示/存储，不写CI。query_enabled默认false，数据库queries_paused默认true；启用query需owner配置与本地确认，恢复暂停不能被配置绕过。
 
-发行包必须有 SHA256SUMS、版本、Go/SQLite版本和许可证清单。安装器从**指定版本**下载到临时目录，验证checksum，展示修改路径/端口，创建用户与目录，备份原配置，原子安装；支持 `--dry-run`、重复执行和失败恢复。不发布 `curl | sudo sh` 的不可审查安装方式。
+profile字段未验证时启用失败，不能为了安装成功让所有22个metric默认打开。个人用户不用部署OAuth才能先完成采集；AI接入后续单独授权。
 
-目标流程：
+## iPhone设置
 
-```sh
-# 在审查并验证本地下载的发行包后执行；示例域名须替换
-sudo ./install.sh --version vX.Y.Z --domain health.example.com --dry-run
-sudo ./install.sh --version vX.Y.Z --domain health.example.com
-sudo -u healthbridge healthbridge migrate --config /etc/healthbridge/config.json
-sudo systemctl enable --now healthbridge
-sudo -u healthbridge healthbridge pair create
-```
+先完成shortcuts-probe的S01。S04b发布经过导入测试的无secret快捷指令模板后，在iPhone导入，按系统提示给健康/网络/本地文件权限。配置origin/upload token到已验证的“我的iPhone”文件，不放iCloud，不在可分享模板内填token。
 
-pair code一次显示；iPhone输入/扫描后验证域名，用户点HealthKit授权。管理指令使用local socket（服务在线）或持锁离线模式。服务默认queries_paused=true；首轮数据检查后，owner将配置query_enabled=true并reload（installer可显式--enable-query），再执行query enable开放已认证查询。restore暂停不能被配置自动清除。
+没有本地文件读能力时自动化setup阻塞；明确manual-only方式可每次输入token，但不能称全自动。此情况不要求用户装Xcode/辅助App。首次手动同步成功后，再设置本人设备上的定时/充电/训练结束自动化；不承诺从Mac批量配置iPhone个人自动化。
 
-只读 token 创建例：`healthbridge token create --role query --scopes health:summary --max-days 90 --expires-in 90d`。secret 输出到TTY一次，不经 shell history/CI/日志；使用端保存到安全 store，不把真实 token 填进示例配置或源码。
+本机分享工具是否能导出/签署可导入shortcut必须实测；任何系统Shortcuts文件分享验证与自编译App七天续签是不同流程。本轮没有安装链接，不伪造可下载文件。各iOS版本触发和错误行为由S04a验证。
 
-## 3. iOS 构建/签名
+## 任务计划与历史
 
-后续采用 Swift Package + 薄 Xcode target，稳定 Xcode；支持 iOS17+；真实 HealthKit 与后台验收必须 iPhone/Watch。生成 Xcode project 的工具若需要，固定版本，仅用于 build，不加入运行时。
+默认hot lookback7天、一次plan最多8job；密集type使用验证后的900秒profile，稀疏type可86400秒。过去未ACK窗持续在pending；相同内容重读复用snapshot但更新观察时间。超限窗blocked，不能自动吞掉历史记录。
 
-个人本地 Xcode signing 最少步骤，但有效期/能力受 Apple 账号方案限制；Personal Team 不作为长期无人值守发行承诺。开发者计划/TestFlight/App Store 有各自资格、签名和有效期要求，P05按当时 Apple 官方规则核验；不能自动化代替注册、条款或系统授权。本轮环境仅检测到 Command Line Tools，没有完整 Xcode，也无 Go toolchain，因此不声称执行了 iOS/Go 编译。
+owner可通过collection backfill创建≤31天范围；开始日期/metrics明确且有界。没有全历史实时变化保证，历史修改需明确重扫。状态只显示待处理/blocked窗口、last_attempt/last_committed、freshness和备份健康，不发送健康值通知。
 
-公开仓库不能包含开发者 team 私密资料、签名证书、profiles 或个人设备 UDID。首次安装/Health 授权/AI授权是必要人工边界；此后同步/重试可自动进行但无后台时刻保证。商店上架要核验 HealthKit 数据用途与第三方 AI 分享政策，开源自用设计不等于 App Review 已获批准。
+## 备份
 
-## 4. 升级
+SQLite Online Backup API或VACUUM INTO一致快照，禁止热库仅cp主文件漏WAL；先integrity_check/FK/checksum，manifest含schema/generation/revision/counts，不含样例健康值。临时明文0600，age公钥加密；私钥由ownerApple设备保管。默认保留7日+4周，只有新备份可用才删旧份。
 
-1. owner 选择明确 release，下载验证（不自动安装 latest）。读取 migration notes。
-2. 执行 preflight：版本兼容、空闲空间、配置/权限、当前备份健康；失败停止。
-3. 进入 maintenance，拒绝新 batch 503，等待在飞写事务；暂停 aggregation。iPhone保留队列重试。
-4. SQLite Online Backup API 或 `VACUUM INTO` 生成一致快照，验证 integrity_check；记录 `schema_version,generation,last_revision,counts,checksum`，加密后原子落位。
-5. 停服务、持锁迁移，事务+checksum；成功原子切 symlink 到新二进制，启动健康检查。普通迁移不改变 generation（数据连续）。
-6. 失败且没有成功迁移时恢复旧 binary；若数据库已变化，恢复旧库快照和旧 binary，**更换 generation** 并进入 reconciliation 状态，不能只换二进制硬降级。
+默认本地timer每日运行，失败本地状态可见；无自动外部通知/云存储。owner可明确设置SSH复制加密包到Apple设备非云同步目录。仅VPS本地备份不抗整机丢失。RPO目标24h只在任务成功时成立，RTO30min是服务恢复目标，不包含窗口重读耗时。
 
-支持 dry-run、相同版本 no-op、中断恢复；不能删除未知目录或覆盖已有服务。没有自动扩容、自动付费外部服务或云资源创建。
+## 升级/回滚
 
-## 5. 备份
+选择明确release→验证checksum→维护模式拒新plan/写入503→等在飞tx→一致备份→停服务持锁migration→原子切binary→本地健康检查。migration version+checksum事务，serve只接受匹配版本，不自动做未知迁移。
 
-使用 SQLite Online Backup API（driver能力核验）或 VACUUM INTO 新目标文件；不 `cp health.db` 忽略 WAL。[官方备份文档](https://sqlite.org/backup.html)。备份 job 受同一 owner lock 管理，不与 schema migration 并发；读写活跃时校验 backup API 的一致性和磁盘余量。
+失败若库没变可换回binary；若库已变则恢复旧库+旧binary，必须新generation。无自动逆向migration、无“只回滚binary兼容新库”的猜测。install不能自动采购资源或开启付费API。
 
-1. 创建0700临时目录、0600快照；数据库 integrity_check + foreign_key_check。
-2. manifest 保存版本、data revision、generation、创建时间和 SHA256，不保存个人记录样例。
-3. 用 `age`（外部运维工具）按 owner public recipient 加密；私钥保存在用户 Apple 设备，VPS仅需公钥做备份。临时明文及时删除，残留风险见 security。
-4. 保留7日+4周，只有新备份通过校验才清理旧份。默认每天本地 timer，失败只记固定错误并在 App 状态显示，未授权不发邮件/第三方通知。
-5. 用户 Apple 设备可经 SSH 手动/显式配置的任务复制加密包；不要置于 iCloud 同步目录。仅本地 VPS 备份不能抵御整机/宿主丢失，状态页应明确。
+## 灾难恢复
 
-目标 RPO≤24h（timer成功且备份可用时），RTO目标30min仅指服务恢复，不包括可能数小时/多次前台机会的 HealthKit重扫。每月从加密备份恢复到隔离临时目录检查 counts/hash/删除抑制，不向AI开放。
+停服务，安全解密验证最近备份，完整处理主库/WAL/SHM，绝不把新主库配旧WAL。保存当前较新的owner_exclusions并在恢复后优先应用；若无法确认最新owner删除范围已恢复，保持queries_paused并让owner复核，不能将旧备份删除过的数据直接给AI。
 
-## 6. 灾难恢复
+恢复后轮换generation、撤销旧credentials/OAuth grants、废弃旧plans/attempts，owner重新配置token。历史snapshot保留历史observed_at，不当新鲜；新计划重读本人允许范围。旧generation请求拒绝，receipt不能复活已作废任务。scope收窄/空读取不触发源删除。
 
-1. 停服务与上传，保存当前故障现场到受限本地路径（不发日志/仓库）。
-2. 在用户 Apple 设备或自有 VPS安全路径解密最近一致快照，校验 hash/schema/integrity/FK，不接受未经验证的任意 SQL 导入。
-3. 替换数据库及其 WAL/SHM 时必须服务停止并遵循 SQLite一致性；旧文件留在受限恢复目录，不能留旧WAL配新主库。
-4. 应用比备份更新的删除 ledger/tombstones（如有），轮换 server_generation，所有上传 streams 关闭，新 token/grant 重新验证，queries_paused=true。更换 OAuth secret 撤销备份中可能复活的授权，重新配对/授权。
-5. iPhone收到409后新stream重扫；sample UUID去重。没有办法从旧备份的 ACK 知道丢失的所有事件，不能跳过历史。
-6. 若无法证明旧库中已删除数据都已删除，保持AI查询暂停，运行一致性检查、向owner展示suspect_missing。owner确认后才能解除暂停；权限收窄不能触发自动删除。
-7. 验证 deleted UUID 不复活、latest height回退、daily重算、grant撤销生效，最后启用查询。记录恢复时间/版本/通过的测试，不记录健康值。
+在隔离目录验证库/计数/owner exclusions/查询质量，先不开AI。owner确认后才开放查询；未重读历史明确stale/historical，不声称Apple当前镜像。Apple已不再提供且备份没有的数据不可恢复。
 
-备份恢复不是数据同步：Apple已删除且备份也丢失的样本不可重建；未经观测的删除也不能从“查询返回空”推断。
+## CLI范围
 
-## 7. 运维状态与升级接口
-
-CLI目标：`serve`, `config check`, `migrate`, `pair create/revoke`, `publisher replace`, `token create/list/revoke`, `query enable/pause`, `backup`, `restore --dry-run`, `export`, `delete --dry-run`, `reconcile review`, `oauth client/approve/revoke`。命令实现逐阶段建立，不一次写完。
-
-健康状态显示last ACK、queue bytes、各type last query、projection backlog、DB空间、最近backup成功时间。告警只在本地/UI，所有接口本身都不调用付费AI；服务端离线时客户端有界保留数据并给出错误。
+serve/config check/migrate；token create/list/revoke；publisher replace；collection profile enable/disable/backfill/status；query enable/pause；backup/restore --dry-run/export/delete --dry-run；可选oauth client/approve/revoke。均逐S阶段实现。export只到明确私有路径、无credentials；delete是owner操作，不是快捷指令上传deletions。

@@ -1,27 +1,24 @@
 # Handoff
 
-核验日期：2026-10-25。项目名称：Health Bridge；公开仓库：[atongrun/health-bridge](https://github.com/atongrun/health-bridge)。
+日期：2026-10-25；公开仓库：[atongrun/health-bridge](https://github.com/atongrun/health-bridge)。
 
 ## 当前事实
 
-- P00：完成源码调研、架构、契约、参考DDL、合成示例、文档检查与公开仓库创建。提交/CI的最终状态以Git历史及GitHub checks为准。
-- 正式业务代码：**未开始**。没有 Go HTTP 服务、iOS target、数据库迁移或部署脚本。
-- 五个仓库的固定提交和发布元数据在 `docs/evidence/repositories.json`；没有运行它们的测试，不声称其运行时可靠性已得到验证。
-- 参考 SQL 位于 `docs/schema.sql`，不是已部署数据库迁移。
-- 下一任务：`docs/roadmap.md` 的 **P01a（合成契约夹具与不变量检查）**。不得直接实现全栈。
-- 本地验证：`python3 scripts/check_docs.py`通过；参考DDL的active publisher唯一性/FK/count约束通过；43个固定源码链接路径核对通过。详细范围见`docs/evidence/validation.md`。
+- 本轮阶段是 **P00b：Shortcuts-first文档与契约重定基线**，没有进入正式业务开发。
+- 用户硬约束：系统快捷指令优先；不交开发者年费；不装Xcode；不做7天续签；不把自研App作为依赖。
+- [ADR-007](docs/decisions/007-shortcuts-first.md)替代原生采集及其同步协议。旧P01–P11不可执行，当前路线为S01–S09。
+- Go+SQLite单体、独立MIT仓、只读HTTP/MCP、自有VPS和无健康云边界保留。
+- 原生UUID/anchor/outbox/series/enrichment协议已从当前DDL、JSON schema、示例和CI删除；未有部署或真实数据，因此不需要数据库迁移/协议兼容层。原文可从Git提交9dd9300查看。
+- 五项目源码调查仍有效；Swift代码移植、GRDB、App签名计划暂停，不是当前开发任务。
+- 本机没有可操作的已授权iPhone健康环境；**S01真机字段/本地配置与S04a HTTP行为尚未验证**。本轮未访问真实健康数据。
+- 本地设计检查已通过：37份Markdown、本地链接、18表DDL及5个负面约束、JSON Schema元验证与2正例/10反例；详情见docs/evidence/validation.md。Go业务/iPhone/MCP测试未执行，不把文档检查等同于产品可用。
 
-## 冻结决策
+## 下一任务
 
-原生采集、独立 MIT 仓、Go + SQLite 单体、单 publisher、持久 outbox、tombstone 优先、固定只读查询、同机可选 OAuth、无第三方健康云。细节见 ADR。
+执行[无Xcode能力探针](docs/shortcuts-probe.md)的S01。本仓已准备动作步骤和无值能力记录模板。先检查一个健康类型是否能提供可解析起始时间、单位和数值，再验证其他字段。只分享“字段有/无、类型、单位、精度、系统版本”等能力结论，不分享样本值、UUID、截图或token。
 
-## 真机与外部 gate
+无设备时可以做S02合成契约工作；不能把S01写成已通过、启用未经验证的metric，或用Xcode补这个gate。S03开始服务端，S04才制作正式采集快捷指令。禁止直接照旧App路线开发。
 
-- HealthKit quantity series、历史 nil-anchor、游泳 lap/segment/SWOLF、HRR1 单位与关联、锁屏与撤权必须完成 P01b/P05/P07 验证。
-- ChatGPT / Grok 自定义 MCP 已有官方文档；本项目具体端点与账号尚未联调。
-- iOS 签名分发需要开发者自己的 Apple 身份与设备，仓库不保存签名资产。
-- 删除记录过期、有限历史权限、从旧备份恢复后只能报告可见范围与 reconciliation 状态，不能承诺推断不存在的历史。
+## 尚未承诺
 
-## 给下一个 Agent 的任务
-
-读取 AGENTS、ADR-002、ios-sync、data-schema、api、testing。仅完成 P01a：补齐合成协议边界夹具和标准库契约检查，验证批次边界、UUID 身份、时间/单位和失败分类。不得访问真实健康数据，不创建服务、不部署、不替换技术选型。完成后提交真实检查结果与待执行 P01b 的设备清单。
+可靠删除传播、完整历史变更、固定后台频率、来源融合与Apple Health完全一致、完整泳圈/SWOLF/HRR2、App Store客户端或公开健康端点。相关状态必须在查询结果中可见。

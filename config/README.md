@@ -1,9 +1,7 @@
-# 配置契约
+# 配置设计
 
-`config.example.json` 是无secret设计示例；没有程序在本轮读取它。未来配置解析必须拒绝未知键和不安全值；首次安装需替换example域名、建立路径/权限、创建实际backup公钥文件。
+当前JSON是shortcuts-1参考，不代表已有服务。collection.enabled_profiles默认为空：每metric/profile必须S01验证并由owner启用。profile不可变，动作字段/单位/来源/窗口变更创建新版本。不能把候选registry当已启用功能。
 
-query_enabled是启动配置总开关，与instance_state.queries_paused一起生效：只有配置允许且数据库未暂停才可查询，不能用配置覆盖restore暂停。source_priority为metric→source_id数组，空表示使用文档的自动fallback并标partial。
+query_enabled和数据库queries_paused都允许时才可查询；restore暂停不能被配置覆盖。OAuth disabled时无需secret_file；enabled时文件/权限不安全启动失败。
 
-初次需要查询时由owner修改query_enabled=true并reload，再通过本地query enable解除初始暂停；installer可用显式--enable-query完成配置部分，但不能绕过restore的reconciliation gate。derived_metrics.wrist_temperature_delta_28d_enabled只控制自定义基线计算，false时仍保存腕温绝对值。
-
-OAuth disabled时不要求secret_file存在；enabled时文件缺失/权限不安全必须启动失败。数据库和token由CLI初始化，不把token直接填在此配置。写入限额是上限，生产配置只能收紧；放宽上限需要容量测试与ADR。
+真正upload token在用户iPhone本地配置中，不写server示例JSON、shortcut模板或Git。所有生产路径/权限由installer检查。示例域名不是实际部署；本轮不创建任何secret或VPS配置。

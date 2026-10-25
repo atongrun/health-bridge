@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "status": "design",
+  "schema_version": "shortcuts-1",
+  "status": "candidates_not_enabled",
   "metrics": [
     {
       "metric": "active_energy",
@@ -8,7 +8,8 @@
       "kind": "quantity",
       "unit": "kcal",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "step_count",
@@ -16,7 +17,8 @@
       "kind": "quantity",
       "unit": "count",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "apple_exercise_time",
@@ -24,7 +26,8 @@
       "kind": "quantity",
       "unit": "min",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "heart_rate",
@@ -32,7 +35,8 @@
       "kind": "quantity",
       "unit": "count/min",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "hrr1_native",
@@ -40,7 +44,8 @@
       "kind": "quantity",
       "unit": "count/min",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "resting_hr",
@@ -48,7 +53,8 @@
       "kind": "quantity",
       "unit": "count/min",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "hrv_sdnn",
@@ -56,7 +62,8 @@
       "kind": "quantity",
       "unit": "ms",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "vo2_max",
@@ -64,7 +71,8 @@
       "kind": "quantity",
       "unit": "mL/(kg*min)",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "walking_hr",
@@ -72,7 +80,8 @@
       "kind": "quantity",
       "unit": "count/min",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "respiratory_rate",
@@ -80,7 +89,8 @@
       "kind": "quantity",
       "unit": "count/min",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "oxygen_saturation",
@@ -88,7 +98,8 @@
       "kind": "quantity",
       "unit": "1",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "wrist_temperature",
@@ -96,7 +107,8 @@
       "kind": "quantity",
       "unit": "degC",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "body_mass",
@@ -104,7 +116,8 @@
       "kind": "quantity",
       "unit": "kg",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "height",
@@ -112,7 +125,8 @@
       "kind": "quantity",
       "unit": "m",
       "aggregation_style": "discrete",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "swimming_stroke_count",
@@ -120,7 +134,8 @@
       "kind": "quantity",
       "unit": "count",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "distance_swimming",
@@ -128,7 +143,8 @@
       "kind": "quantity",
       "unit": "m",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "distance_walking_running",
@@ -136,7 +152,8 @@
       "kind": "quantity",
       "unit": "m",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "distance_cycling",
@@ -144,7 +161,8 @@
       "kind": "quantity",
       "unit": "m",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "distance_wheelchair",
@@ -152,7 +170,8 @@
       "kind": "quantity",
       "unit": "m",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "distance_downhill_snow_sports",
@@ -160,21 +179,24 @@
       "kind": "quantity",
       "unit": "m",
       "aggregation_style": "cumulative",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "sleep",
       "healthkit_identifier": "HKCategoryTypeIdentifierSleepAnalysis",
       "kind": "category",
       "unit": "s",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     },
     {
       "metric": "workout",
       "healthkit_identifier": "HKWorkoutTypeIdentifier",
       "kind": "workout",
       "unit": "s",
-      "device_validation": "pending"
+      "shortcuts_status": "pending",
+      "enabled": false
     }
   ]
 }

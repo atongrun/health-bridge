@@ -1,26 +1,23 @@
-# P00 验证记录
+# P00b 验证记录
 
-日期：2026-10-25。验证对象是本仓库的设计交付物，不是未来业务系统。
+2026-10-25；只验证Shortcuts-first设计交付。旧native基线的26表/fixture报告已被本记录替换，历史可从Git 9dd9300查看。
 
 | 检查 | 实际结果 |
 |---|---|
-| `python3 scripts/check_docs.py` | PASS：必需文件、本地Markdown链接、JSON解析、22个metric注册、合成sample基本不变量 |
-| 参考 `docs/schema.sql` 在内存SQLite执行 | PASS：26张表、sleep view、integrity_check/FK检查；本机SQLite 3.53.3 |
-| DDL负面约束 | PASS：第二个active publisher、孤立workout FK、quantity缺count均被拒绝 |
-| `python3 -m py_compile scripts/check_docs.py` | PASS |
-| 固定SHA源码链接路径复核 | PASS：43个链接均能对应本轮已检查checkout内的文件/目录 |
-| 公开前文件审查 | PASS：没有Go/Swift业务实现、数据库、私钥、真实健康数据、私人绝对路径；仅一份明确标synthetic的样例 |
-| 完整JSON Schema引擎验证 | 未执行，当前环境未安装jsonschema；P01a将建立完整契约验证 |
-| Go/iOS业务编译/测试 | 未执行：本轮无业务代码；本机无Go，xcode-select为Command Line Tools |
-| 上游项目测试 | 未执行：采用源码审查，不声称上游运行时可靠性已验证 |
-| HealthKit真机/后台/指标可用性 | 未执行：无真实健康数据访问，见P01b/P05/P07 gate |
-| ChatGPT/Grok真实connector联调 | 未执行：只核验官方文档；见P10b |
-| VPS部署/真实数据迁移 | 未执行且本轮不执行 |
+| python3 scripts/check_docs.py | PASS：本地Markdown链接、JSON、22个pending候选、profile默认disabled、旧native contract撤销、ADR替代标记 |
+| 隔离venv安装requirements-design依赖并运行check_docs.py --full | PASS：JSON Schema 2020-12 meta-schema、2正例/10反例 |
+| docs/schema.sql内存建库 | PASS：18个应用表（14核心+4可选OAuth），integrity/FK；本机SQLite 3.53.3 |
+| DDL边界 | PASS：合法相同观测保存两行；第二active publisher、未验证profile enable、重复窗口、孤立snapshot、非空no_visible_data共5反例被拒 |
+| 完整业务语义/Go服务 | NOT RUN：尚无业务实现；schema通过不是事务实现测试 |
+| S01 iPhone字段/单位/本地文件 | NOT RUN：无设备执行记录，能力模板全部pending |
+| S04a HTTP/自动化/锁屏 | NOT RUN：无自有测试端点联调，不能声称redirect/错误行为通过 |
+| 正式shortcut导出/安装 | NOT RUN：只提供动作步骤，没有.shortcut文件/安装链接 |
+| Health数据上传/真实VPS/AI联调 | NOT RUN且本轮不执行 |
 
-合成样例 `tests/fixtures/synthetic-samples-batch.json` SHA-256：
+人工合成fixture含两个完全相同元素，用来保护multiplicity，不代表任何真人测量。SHA-256：
 
-```text
-437a084093e99bcad3d2fc7c366739538ba0694ff917a6f73b8e6c220f354989
+```
+d2b3daed4efabe3e771f5cfa1dac9a1ee281e2976c8274d9c496fba1b26e60e6
 ```
 
-当前检查脚本明确打印NOT RUN项目，不把语法/DDL检查称为端到端测试。Git远端状态与CI以本次提交及GitHub checks为准，不把将来的CI成功预写为事实。
+--full采用jsonschema4.26.0；仅临时venv/CI开发依赖，无Xcode/Swift/Go运行服务安装。GitHub CI最终结果以对应提交checks为准。S01真正验证后同步更新能力记录和检查中的pending基线断言，不得为了通过断言伪造设备结果。

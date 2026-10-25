@@ -1,3 +1,3 @@
 # 部署骨架
 
-本轮没有可运行installer、systemd unit或Docker镜像。P11按 [deployment](../docs/deployment.md) 生成、测试并发布；不要用文档中的目标命令操作真实VPS。
+仍无installer/已发布binary/镜像。S08实现deployment.md的dry-run、备份、恢复和升级；采集端不安装Xcode或原生App。本轮不改真实VPS。

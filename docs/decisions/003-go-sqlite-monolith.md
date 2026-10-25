@@ -1,11 +1,11 @@
 # ADR-003：Go+SQLite单体
 
 - 日期：2026-10-25
-- 状态：Accepted
+- 状态：Accepted；采集端按ADR-007修订
 
 ## 决策
 
-Go标准库路由/JSON/SQL，modernc SQLite，单进程一个writer，WAL/FULL、有限read pool；查询/上传共用领域模块但权限接口隔离。MCP用官方Go SDK，OAuth阶段用Fosite，iOS用GRDB。版本见reuse。
+Go标准库路由/JSON/SQL，modernc SQLite，单进程一个writer，WAL/FULL、有限read pool；查询/上传共用领域模块但权限接口隔离。MCP用官方Go SDK，OAuth阶段用Fosite。采集端仅系统快捷指令，不引入GRDB。版本见reuse。
 
 HTTPS由同机Caddy提供，备份加密用age运维工具。SQLite在本地磁盘；非容器优先，installer支持dry-run/回滚。没有服务网格、Redis、Kafka、Kubernetes、数据库ORM或独立Web应用。
 

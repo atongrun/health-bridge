@@ -1,0 +1,208 @@
+{
+  "checked_on": "2026-10-25",
+  "device_os": null,
+  "device_verified": false,
+  "status": "not_run",
+  "local_config_read": "not_tested",
+  "transport_probe": "deferred_to_S04a",
+  "metrics": [
+    {
+      "metric": "active_energy",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "step_count",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "apple_exercise_time",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "heart_rate",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "hrr1_native",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "resting_hr",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "hrv_sdnn",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "vo2_max",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "walking_hr",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "respiratory_rate",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "oxygen_saturation",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "wrist_temperature",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "body_mass",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "height",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "swimming_stroke_count",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "distance_swimming",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "distance_walking_running",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "distance_cycling",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "distance_wheelchair",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "distance_downhill_snow_sports",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "sleep",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    },
+    {
+      "metric": "workout",
+      "status": "pending",
+      "action_name": null,
+      "fields": [],
+      "unit": null,
+      "time_precision": null,
+      "evidence_note": null
+    }
+  ]
+}

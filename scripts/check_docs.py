@@ -1,119 +1,156 @@
 #!/usr/bin/env python3
-"""Check design artifacts only; this is not a production ingest validator."""
+"""Validate design artifacts, never read HealthKit or run a business service."""
 from __future__ import annotations
-
+import argparse
+import copy
 import datetime as dt
 import hashlib
 import json
 import re
 import sqlite3
-import sys
 from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def reject_duplicate_keys(pairs):
+def unique_keys(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise ValueError(f"duplicate JSON key: {key}")
+            raise ValueError(f'duplicate JSON key: {key}')
         result[key] = value
     return result
 
 
+def invalid_constant(value):
+    raise ValueError(f'non-finite JSON constant: {value}')
+
+
 def read_json(path):
-    return json.loads(path.read_text(), object_pairs_hook=reject_duplicate_keys)
+    return json.loads(path.read_text(), object_pairs_hook=unique_keys, parse_constant=invalid_constant)
 
 
-def check():
-    required = [
-        "README.md", "AGENTS.md", "HANDOFF.md", "LICENSE", ".gitignore",
-        "docs/research.md", "docs/reuse.md", "docs/architecture.md",
-        "docs/ios-sync.md", "docs/metrics.md", "docs/data-schema.md",
-        "docs/api.md", "docs/security.md", "docs/deployment.md",
-        "docs/roadmap.md", "docs/testing.md", "docs/review.md",
-    ]
-    for relative in required:
-        assert (ROOT / relative).is_file(), f"missing required artifact: {relative}"
-
-    markdowns = list(ROOT.rglob("*.md"))
-    links = 0
-    for path in markdowns:
-        # This checks local file targets, not remote URLs or Markdown headings.
-        for target in re.findall(r"\]\(([^)]+)\)", path.read_text()):
-            if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target) or target.startswith("#"):
-                continue
-            relative = unquote(target.split("#", 1)[0].split("?", 1)[0])
-            assert not relative.startswith("/"), f"nonportable link in {path.name}"
-            assert (path.parent / relative).exists(), f"broken link in {path.name}: {relative}"
-            links += 1
-
-    json_files = list(ROOT.rglob("*.json"))
-    for path in json_files:
-        read_json(path)
-
-    registry = read_json(ROOT / "contracts/metrics.json")["metrics"]
-    identifiers = {m["healthkit_identifier"]: m for m in registry}
-    assert len(identifiers) == len(registry) == 22
-    assert len({m["metric"] for m in registry}) == len(registry)
-    config = read_json(ROOT / "config/config.example.json")
-    assert config["listen_address"].startswith("127.0.0.1:")
-    assert config["query_enabled"] is False
-    assert config["oauth"]["enabled"] is False
-
-    fixture = ROOT / "tests/fixtures/synthetic-samples-batch.json"
-    body = read_json(fixture)
-    assert body["type"] in identifiers
-    assert len(body["samples"]) + len(body["deletions"]) <= 500
-    assert body["samples"] or body["deletions"] or body["scan_state"] == "drained"
-    for sample in body["samples"]:
-        assert sample["type"] == body["type"]
-        assert sample["source"]["bundle_id"] == "com.example.synthetic"
-        assert sample["quantity"]["unit"] == identifiers[sample["type"]]["unit"]
-        assert sample["quantity"]["count"] >= 1
-        start = dt.datetime.fromisoformat(sample["start"].replace("Z", "+00:00"))
-        end = dt.datetime.fromisoformat(sample["end"].replace("Z", "+00:00"))
-        assert start <= end
-
-    db = sqlite3.connect(":memory:")
+def check_ddl():
+    db = sqlite3.connect(':memory:')
     try:
-        db.executescript((ROOT / "docs/schema.sql").read_text())
-        assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
-        assert db.execute("PRAGMA foreign_key_check").fetchall() == []
-        table_count = db.execute("SELECT count(*) FROM sqlite_master WHERE type='table'").fetchone()[0]
-        assert table_count >= 20
-        db.execute("INSERT INTO publishers(id,epoch,active,created_at_us) VALUES('test-p','test-e',1,0)")
-        db.execute("INSERT INTO sources(id,device_json) VALUES('test-source','{}')")
-        invalid_statements = [
-            "INSERT INTO publishers VALUES('test-p2','test-e2',1,0,NULL)",
-            "INSERT INTO workouts(sample_uuid,activity_type,duration_seconds) VALUES('missing',46,1)",
-            "INSERT INTO samples(uuid,hk_type,metric,kind,start_us,end_us,source_id,value,unit,"
-            "metadata_json,raw_json,content_sha256,received_at_us,data_revision) "
-            "VALUES('test-s','t','m','quantity',0,0,'test-source',1,'count','{}','{}','test',0,0)",
+        db.executescript((ROOT / 'docs/schema.sql').read_text())
+        tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
+        assert len(tables) == 18
+        assert not tables.intersection({'samples', 'sync_streams', 'tombstones', 'quantity_series'})
+        db.execute("INSERT INTO publishers VALUES('synthetic-p','synthetic-e',1,0,NULL)")
+        db.execute("INSERT INTO collection_profiles(id,version,metric,window_seconds,mapping_json,mode) VALUES('synthetic-profile',1,'heart_rate',900,'{}','on_demand')")
+        db.execute("INSERT INTO collection_windows(id,profile_id,start_us,end_us,next_due_at_us) VALUES('synthetic-job','synthetic-profile',0,900000000,0)")
+        db.execute("INSERT INTO observation_snapshots VALUES('synthetic-snapshot','synthetic-job',?,'observed',2,0)", ('a' * 64,))
+        item_sql = "INSERT INTO observation_items(snapshot_id,ordinal,kind,start_us,time_precision,value,unit,source_json) VALUES('synthetic-snapshot',?,'quantity',0,'second',60,'count/min','{}')"
+        db.execute(item_sql, (0,))
+        db.execute(item_sql, (1,))
+        assert db.execute('SELECT count(*) FROM observation_items').fetchone()[0] == 2
+        bad = [
+            "INSERT INTO publishers VALUES('p2','e2',1,0,NULL)",
+            "UPDATE collection_profiles SET enabled=1",
+            "INSERT INTO collection_windows(id,profile_id,start_us,end_us,next_due_at_us) VALUES('j2','synthetic-profile',0,900000000,0)",
+            "INSERT INTO observation_snapshots VALUES('bad','missing','bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb','observed',1,0)",
+            "INSERT INTO observation_snapshots VALUES('bad','synthetic-job','bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb','no_visible_data',1,0)",
         ]
-        for statement in invalid_statements:
+        for sql in bad:
             try:
-                db.execute(statement)
+                db.execute(sql)
             except sqlite3.IntegrityError:
                 pass
             else:
-                raise AssertionError("reference DDL accepted an invalid synthetic row")
+                raise AssertionError('DDL accepted invalid synthetic row')
+        assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
+        assert db.execute('PRAGMA foreign_key_check').fetchall() == []
+        print(f'PASS: {len(tables)} design tables; duplicate observations preserved; 5 negative DDL cases; SQLite {sqlite3.sqlite_version}')
     finally:
         db.close()
 
-    print(f"PASS: {len(markdowns)} Markdown files, {links} local links, {len(json_files)} JSON files")
-    print(f"PASS: {len(registry)} metric definitions and synthetic fixture basic invariants")
-    print(f"PASS: reference DDL, {table_count} tables; SQLite {sqlite3.sqlite_version}; integrity/FK checks")
-    print("PASS: DDL rejects multiple active publishers, orphan workouts, and null quantity counts")
-    print(f"Fixture SHA-256: {hashlib.sha256(fixture.read_bytes()).hexdigest()}")
-    print("NOT RUN: full JSON Schema validation, Go/iOS code, upstream tests, device or MCP integration")
+
+def check_schema(fixture):
+    from jsonschema import Draft202012Validator, FormatChecker
+    schema = read_json(ROOT / 'contracts/shortcuts-observation.schema.json')
+    Draft202012Validator.check_schema(schema)
+    formats = FormatChecker()
+
+    @formats.checks('date-time', raises=(ValueError, TypeError))
+    def valid_datetime(value):
+        if not isinstance(value, str):
+            return True  # The schema's type rule rejects non-strings.
+        return dt.datetime.fromisoformat(value.replace('Z', '+00:00')).tzinfo is not None
+
+    validator = Draft202012Validator(schema, format_checker=formats)
+    validator.validate(fixture)
+    empty = copy.deepcopy(fixture)
+    empty.update(read_state='no_visible_data', items=[])
+    validator.validate(empty)
+    variants = []
+    for changes in [dict(items=[]), dict(read_state='no_visible_data'), dict(limit_reached=True),
+                    dict(protocol='1.0'), dict(deletions=[]), dict(items=fixture['items'] * 501),
+                    dict(profile_version=0), dict(query_limit=1000),
+                    dict(captured_at='2026-02-30T00:00:00Z')]:
+        value = copy.deepcopy(fixture)
+        value.update(changes)
+        variants.append(value)
+    invalid = copy.deepcopy(fixture)
+    invalid['items'][0]['category'] = {'label': 'Asleep'}
+    variants.append(invalid)
+    for value in variants:
+        assert list(validator.iter_errors(value)), 'Schema accepted invalid synthetic fixture'
+    print('PASS: JSON Schema 2020-12 meta-schema, date-time validation, 2 positive / 10 negative structural cases')
 
 
-if __name__ == "__main__":
-    try:
-        check()
-    except (AssertionError, ValueError, OSError, sqlite3.Error) as error:
-        print(f"FAIL: {error}", file=sys.stderr)
-        raise SystemExit(1)
+def main(full):
+    required = ['README.md', 'AGENTS.md', 'HANDOFF.md', 'docs/architecture.md', 'docs/roadmap.md',
+                'docs/ios-sync.md', 'docs/shortcuts-probe.md', 'docs/research.md', 'docs/reuse.md',
+                'docs/api.md', 'docs/security.md', 'docs/data-schema.md', 'docs/deployment.md',
+                'docs/review.md', 'docs/testing.md', 'docs/decisions/007-shortcuts-first.md']
+    for name in required:
+        assert (ROOT / name).is_file(), f'missing: {name}'
+    markdowns = list(ROOT.rglob('*.md'))
+    links = 0
+    for path in markdowns:
+        for target in re.findall(r'\]\(([^)]+)\)', path.read_text()):
+            if re.match(r'[a-zA-Z][a-zA-Z0-9+.-]*:', target) or target.startswith('#'):
+                continue
+            relative = unquote(target.split('#', 1)[0].split('?', 1)[0])
+            assert not relative.startswith('/')
+            assert (path.parent / relative).exists(), f'broken link: {path.name}: {relative}'
+            links += 1
+    for path in ROOT.rglob('*.json'):
+        read_json(path)
+    registry = read_json(ROOT / 'contracts/metrics.json')['metrics']
+    assert len({m['metric'] for m in registry}) == len(registry) == 22
+    assert all(m['shortcuts_status'] == 'pending' and m['enabled'] is False for m in registry)
+    capability = read_json(ROOT / 'docs/evidence/shortcuts-capabilities.json')
+    assert capability['device_verified'] is False and capability['status'] == 'not_run'
+    config = read_json(ROOT / 'config/config.example.json')
+    assert config['collection']['enabled_profiles'] == [] and config['query_enabled'] is False
+    assert config['listen_address'].startswith('127.0.0.1:') and config['oauth']['enabled'] is False
+    for old in ['contracts/sync-batch.schema.json', 'tests/fixtures/synthetic-samples-batch.json']:
+        assert not (ROOT / old).exists(), f'withdrawn native contract still active: {old}'
+    assert 'Superseded' in (ROOT / 'docs/decisions/001-native-client.md').read_text()
+    assert 'Superseded' in (ROOT / 'docs/decisions/002-durable-sync.md').read_text()
+    assert not re.search(r'^## P0[1-9]|^## P1[01]', (ROOT / 'docs/roadmap.md').read_text(), re.M)
+    fixture_path = ROOT / 'tests/fixtures/synthetic-shortcuts-observation.json'
+    fixture = read_json(fixture_path)
+    assert fixture['protocol'] == 'shortcuts-1' and len(fixture['items']) == 2
+    assert fixture['items'][0] == fixture['items'][1], 'multiplicity fixture changed'
+    parse = lambda value: dt.datetime.fromisoformat(value.replace('Z', '+00:00'))
+    for item in fixture['items']:
+        assert parse(fixture['window']['start']) <= parse(item['start']) < parse(fixture['window']['end'])
+        assert item['native_id'] is None and item['source_label'] is None
+    print(f'PASS: {len(markdowns)} Markdown files, {links} local links; 22 pending candidates; no enabled profiles or native contract')
+    check_ddl()
+    if full:
+        check_schema(fixture)
+    else:
+        print('NOT RUN: full JSON Schema validation (install requirements-design.txt and use --full)')
+    print('Fixture SHA-256:', hashlib.sha256(fixture_path.read_bytes()).hexdigest())
+    print('NOT RUN: iPhone capability/transport probes, Go service tests, real health upload or AI integration')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--full', action='store_true')
+    main(parser.parse_args().full)

@@ -1,65 +1,51 @@
 # Health Bridge
 
-**把 Apple Health 数据同步到自己的 VPS，再按需、安全地提供给 AI。**
+**Apple Health → 系统快捷指令 → 自有 VPS → ChatGPT / Grok / AI Agent。**
 
-Health Bridge 是面向单个使用者的开源个人健康数据基础设施：极简 iPhone 客户端、一个 Go 进程、一个 SQLite 数据库。没有第三方健康云、广告 SDK、账号平台或任意 SQL 接口。
+个人健康数据基础设施：苹果自带快捷指令负责采集，一个 Go 服务和 SQLite 数据库负责保存及查询。不要求 Apple 开发者年费、Xcode、自签 App 或周期续签；不通过第三方健康云中转。
 
-> 当前状态：**设计与文档基线，尚未实现业务功能，也没有可安装的发行版。** 文中的接口、配置及部署命令是后续开发契约，不代表现在可运行。调研核验日期：2026-10-25。
+> 当前是 **Shortcuts-first 设计基线**，尚无正式业务实现、可安装快捷指令包或在线端点。2026-10-25用户明确调整成本与维护约束，已撤销原生 App 默认路线。下一步先完成 iPhone 本地能力探针，不能把原生 HealthKit API 支持当作快捷指令已支持。
 
 ```mermaid
 flowchart LR
-  W[Apple Watch] --> H[Apple Health / HealthKit]
-  H --> I[iPhone: Swift + HealthKit + durable outbox]
-  I -->|HTTPS / upload credential| V[Own VPS: Go API]
-  V --> D[(SQLite)]
-  A[ChatGPT / Grok / AI Agent] -->|OAuth or query credential| Q[Read-only API / MCP]
-  Q --> V
+  W[Apple Watch] --> H[Apple Health]
+  H --> S[iPhone 系统快捷指令]
+  S -->|HTTPS / 上传凭据| V[自有 VPS: Go]
+  V --> DB[(SQLite 观测快照)]
+  AI[AI 客户端] -->|授权只读 API / MCP| V
 ```
 
-## 设计目标
+## 当前方案
 
-- 保存授权范围内的原始 HealthKit 样本、来源、训练、睡眠阶段及删除事件；衍生每日汇总。
-- 增量同步、历史回填、离线队列、重试与事务级幂等；失败可见，不静默丢样本。
-- 训练心率、游泳事件、SWOLF、HRV、呼吸率、血氧、体重等有独立的数据质量说明。
-- 上传、查询、管理权限隔离；MCP 只有固定只读工具。
-- 自有 VPS 是唯一独立健康数据服务端。AI 只收到用户授权查询的结果。
-- Linux amd64/arm64 单二进制部署；HTTPS 由同机 Caddy 提供；无需 Docker、PostgreSQL、Redis。
+- 有界窗口重读、服务器保存已接收观测快照、版本化每日统计。重复运行不重复累加同一窗口。
+- 不要求快捷指令提供 HealthKit UUID、anchors、删除通知、原生后台 observer 或 SQLite outbox。
+- 原样保留本次快捷指令输出的记录及重复数量；没有稳定身份的记录不冒充 HealthKit 原始样本。
+- 上传与查询凭据独立，查询有 scope/日期/条数限制，MCP 不允许任意 SQL。
+- 定时/训练结束自动化只是执行机会；锁屏、网络和系统限制仍会使一次运行失败。
+- 原生 App 不在当前 Roadmap。字段不够时明确 unsupported/partial，不自动改回 App。
 
-## 必须知道的边界
+## 必须知道的降级
 
-1. **选择原生 iOS App 为主采集端。** 快捷指令只用于触发同步，不承担可靠游标、删除或游泳明细同步。
-2. 后台执行是 iOS 的机会性调度；锁屏、强制退出、权限变化都可能造成延迟。没有“每分钟必达”。
-3. HealthKit 腕温是夜间绝对值；Apple Health 的个人基线偏移没有在本次调研中找到等价公开字段。两分钟心率恢复也没有对应的标准 HealthKit quantity type。衍生值会标明算法与缺失原因。
-4. HealthKit 删除记录可能被清理，读取拒绝又不可辨识。长期离线后的完整删除恢复不能无条件保证；详见[同步设计](docs/ios-sync.md)。
-5. ChatGPT 和 Grok 官方均已文档化自定义远程 MCP。**本项目尚未完成账号、设备或真实端点联调**，不能把文档支持当作已接通。
-6. 本仓库无真实健康数据。演示与测试只允许人工构造的合成数据。
+快捷指令的具体健康类型、字段、精度、来源与 UUID 暴露面尚待本人 iPhone 验证。删除事件、quantity series、完整游泳圈段/SWOLF不列为承诺；不能保证与 Apple Health 的数据或每日总量完全一致。重读窗口无法保证捕获所有历史修改。没有本地健康 outbox，网络失败后下一次重新读取，不能保证保住从未上传成功且后来在Apple端消失的记录。
 
-## 阅读顺序
+**空读取不等于零，也不等于删除。** 当前窗口变为空只表示本次没有可见数据，旧观测仍保留供owner审计，不自动清除；AI默认收到null和缺失原因。
+
+## 开始这里
+
+1. [不装 Xcode 的能力探针](docs/shortcuts-probe.md)：首先只在iPhone本地检查字段，不上传健康值。
+2. [HANDOFF](HANDOFF.md) / [AGENTS](AGENTS.md)：下一任务与开发护栏。
+3. [Roadmap](docs/roadmap.md)：新阶段使用 **S01–S09**；原P01–P11已作废，不可继续执行。
 
 | 文档 | 内容 |
 |---|---|
-| [HANDOFF.md](HANDOFF.md) / [AGENTS.md](AGENTS.md) | 当前状态、下一任务、Agent 护栏 |
-| [源码调研](docs/research.md) / [复用决策](docs/reuse.md) | 五个候选、固定 SHA、代码证据、许可证 |
-| [架构](docs/architecture.md) / [ADR](docs/decisions/README.md) | 模块边界与已冻结决策 |
-| [iOS 同步](docs/ios-sync.md) / [指标矩阵](docs/metrics.md) | HealthKit、后台、单位、精度和设备限制 |
-| [Schema](docs/data-schema.md) / [参考 DDL](docs/schema.sql) | 原始记录、删除、训练、汇总与迁移 |
-| [API / MCP](docs/api.md) / [OAuth](docs/oauth.md) | 上传协议、查询工具、认证与客户端能力 |
-| [聚合算法](docs/aggregation.md) | 来源去重、睡眠、心率恢复、游泳与时区 |
-| [安全](docs/security.md) / [部署](docs/deployment.md) | 凭据、备份、恢复、升级与隐私边界 |
-| [Roadmap](docs/roadmap.md) / [验证计划](docs/testing.md) | 小阶段交付与必过测试 |
-| [架构自检](docs/review.md) | 设计审查、修正与未验证风险 |
+| [调研](docs/research.md) / [复用](docs/reuse.md) | 五个指定项目的固定源码证据与当前复用范围 |
+| [架构](docs/architecture.md) / [ADR](docs/decisions/README.md) | Shortcuts-first取舍与旧方案替代关系 |
+| [采集与同步](docs/ios-sync.md) / [指标](docs/metrics.md) | 动作流程、能力门槛、窗口与字段限制 |
+| [Schema](docs/data-schema.md) / [参考DDL](docs/schema.sql) | 观测快照而非假定UUID镜像 |
+| [API/MCP](docs/api.md) / [OAuth](docs/oauth.md) | 上传与授权只读访问契约 |
+| [聚合](docs/aggregation.md) / [安全](docs/security.md) | 快照选择、质量状态、来源、隐私 |
+| [部署](docs/deployment.md) / [测试](docs/testing.md) / [审查](docs/review.md) | 运维与真实验收边界 |
 
-## 当前可运行的检查
+现在可以运行 `python3 scripts/check_docs.py` 和 `git diff --check`，仅验证设计材料。没有运行Go业务、iPhone探针或MCP端到端测试。原创内容[MIT](LICENSE)，依赖与移植见[notices](THIRD_PARTY_NOTICES.md)。
 
-```sh
-python3 scripts/check_docs.py
-git diff --check
-```
-
-这些检查验证文档、合成示例和参考 SQL，不测试尚不存在的业务功能。Go、iOS、MCP 联调在各开发阶段建立。
-
-## 开源与贡献
-
-项目原创内容采用 [MIT](LICENSE)。本次未复制候选项目的业务代码。后续移植必须按 [reuse.md](docs/reuse.md) 保留原作者、许可证及修改记录；不得把 AGPL 代码改个名字放进 MIT 模块。见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
-Health Bridge 提供数据基础设施与个人健康趋势信息，不实现诊断或医疗决策。
+完整JSON Schema检查在开发/CI的隔离Python环境安装`requirements-design.txt`后运行`python scripts/check_docs.py --full`；不是iPhone使用前提。

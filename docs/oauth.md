@@ -1,6 +1,6 @@
 # 单用户 OAuth 设计
 
-目标是 ChatGPT/Grok 的远程只读授权。普通 API/自控 Agent 可以先用独立 query bearer；OAuth 在 P10 实现，默认关闭。服务仍是同一个 VPS、Go binary 和 SQLite；不用第三方 IdP，不做账号注册/密码找回。
+目标是 ChatGPT/Grok 的远程只读授权。普通 API/自控 Agent 可以先用独立 query bearer；OAuth 在 S07a 实现，默认关闭。服务仍是同一个 VPS、Go binary 和 SQLite；不用第三方 IdP，不做账号注册/密码找回。
 
 ## 1. 成熟组件与边界
 
@@ -16,7 +16,7 @@
 
 V1 **只做预注册**，关闭 DCR 与任意 CIMD URL fetch，避免多余 SSRF/注册滥用。ChatGPT 官方文档支持提供 static credentials；管理员从目标 MCP 管理界面取得精确 callback URI，执行本地 `healthbridge oauth client add --redirect-uri ...`，把生成的 client_id/secret 填入该客户端。
 
-每客户端仅允许明确 HTTPS redirect URI，精确匹配 scheme/host/path/query，不支持 wildcard、任意 localhost、fragment 或 open redirect。Grok 若该账号的自定义连接 UI 无法配置预注册 client，不假装可接通：P10b 验证 OAuth form；不兼容时保持 Grok 接入 disabled，使用 API/Build bearer fallback。是否增加 CIMD/DCR 另提 ADR，不能现场打开公共注册。
+每客户端仅允许明确 HTTPS redirect URI，精确匹配 scheme/host/path/query，不支持 wildcard、任意 localhost、fragment 或 open redirect。Grok 若该账号的自定义连接 UI 无法配置预注册 client，不假装可接通：S07b 验证 OAuth form；不兼容时保持 Grok 接入 disabled，使用 API/Build bearer fallback。是否增加 CIMD/DCR 另提 ADR，不能现场打开公共注册。
 
 `token_endpoint_auth_method` 支持预注册 confidential client 的 client_secret_basic；如目标客户端明确需要 client_secret_post，可以按该 client 显式启用并确认日志不记录 form。public client 仅允许预注册、PKCE、method=none，单独测试；不能自动降级。
 
@@ -28,7 +28,7 @@ V1 **只做预注册**，关闭 DCR 与任意 CIMD URL fetch，避免多余 SSRF
 4. 浏览器页面通过同源受 binding cookie 保护的短轮询看到批准；POST continue 要 CSRF token + Origin 检查；只能消费与该浏览器、该 client、该 request 绑定的一次批准。
 5. Fosite 签发一次性 code，redirect 回精确 URI；客户端兑换 access/refresh。拒绝/超时不签发。
 
-一次人工确认是把健康数据授权给 AI 服务的明确边界；首次配对和系统 HealthKit 授权不能绕过。后续 refresh 自动轮换，减少重复操作。禁止用长期 admin token 放网页登录表单或 URL。
+一次人工确认是把健康数据授权给 AI 服务的明确边界；首次本地配置和系统健康读取授权不能绕过。后续 refresh 自动轮换，减少重复操作。禁止用长期 admin token 放网页登录表单或 URL。
 
 ## 4. HTTP discovery 与授权绑定
 
@@ -39,7 +39,7 @@ V1 **只做预注册**，关闭 DCR 与任意 CIMD URL fetch，避免多余 SSRF
 - opaque access token 查询 active session + grant，验证 expiry/client/owner/resource/scopes/metrics/date limits；**每次**检查 grant revoke，不能靠缓存延迟生效。
 - read API 的自建 query bearer 与 OAuth MCP access token 分开 audience；前者只允许显式配置 /mcp bearer 模式，不能拿 upload token 充当 AI OAuth。
 
-依据：[MCP authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)、[OpenAI authentication](https://developers.openai.com/plugins/build/auth)。平台认证接口是持续变化的边界，P10 按此设计联调，差异记录为 gate，不降低认证。
+依据：[MCP authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)、[OpenAI authentication](https://developers.openai.com/plugins/build/auth)。平台认证接口是持续变化的边界，S07a 按此设计联调，差异记录为 gate，不降低认证。
 
 ## 5. Scope 与存储适配
 
@@ -63,4 +63,4 @@ payload_json 使用版本化 DTO 重建 Fosite Request 与 DefaultSession（id/r
 
 ## 6. 发布 gate
 
-P10 必须完成：invalid redirect、wrong audience、PKCE missing/plain/mismatch、code reuse、并发兑换、refresh reuse、scope escalation、取消/过期 consent、CSRF、跨浏览器批准盗用、撤销立即生效、DB restart、secret rotation。平台 smoke test 先使用合成数据。没有安全评审和负面测试，不启用公网 OAuth。
+S07a 必须完成：invalid redirect、wrong audience、PKCE missing/plain/mismatch、code reuse、并发兑换、refresh reuse、scope escalation、取消/过期 consent、CSRF、跨浏览器批准盗用、撤销立即生效、DB restart、secret rotation。平台 smoke test 先使用合成数据。没有安全评审和负面测试，不启用公网 OAuth。

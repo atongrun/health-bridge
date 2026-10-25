@@ -1,71 +1,50 @@
-# 验证矩阵
+# 验证矩阵：shortcuts-1
 
-## 当前检查与未来测试严格分开
+当前只验证设计材料。基础检查python3 scripts/check_docs.py；完整结构检查先在临时venv安装requirements-design.txt，再python scripts/check_docs.py --full。后者用成熟jsonschema Draft202012Validator，并开启FormatChecker，不自行实现完整JSON Schema引擎。它仍不是Go事务/真实Shortcuts运行测试。
 
-现在：`python3 scripts/check_docs.py` 只检查文档链接、JSON可读、样例约束、参考DDL能在内存SQLite建立；`git diff --check`检查空白问题。没有运行Go/iOS业务测试，因为业务代码不存在、当前环境也没有Go/完整Xcode。
+## 必测行为（对应后续阶段）
 
-后续Go（server目录）：`go test ./...`、`go test -race ./...`（支持race的开发平台）、`go vet ./...`、`govulncheck ./...`；release cross-build使用CGO=0。后续Swift：`swift test --package-path ios/HealthBridgeCore` 对平台独立状态机；需要HealthKit的测试用固定Xcode scheme+simulator `xcodebuild test`；背景行为另用真机，不能在CI上伪通过。
-
-## 自动化必测
-
-| ID | 输入/故障 | 必须观察到的结果 |
+| ID | 场景 | 预期 |
 |---|---|---|
-| T-SYNC-01 | query后、outbox事务前崩溃 | anchor不变，重读无缺失 |
-| T-SYNC-02 | 页切成3批，第2批本地写失败 | 整页事务回滚，无部分read_anchor |
-| T-SYNC-03 | server commit成功但ACK丢失 | 同id/body重试，同receipt，样本不增 |
-| T-SYNC-04 | 假200/错误digest/错误epoch ACK | 队列保留，ack_anchor不动 |
-| T-SYNC-05 | 相同start有501不同UUID，page500 | 全部501可见，不加epsilon跳过 |
-| T-SYNC-06 | 序列跳号/旧epoch/异body同id | 409，零部分变化 |
-| T-SYNC-07 | 序列化某对象失败、错误unit | 该type阻塞，其余type可继续，不能success |
-| T-SYNC-08 | 数据库忙/磁盘满/进程SIGKILL | 不ACK或可重放，integrity_check通过 |
-| T-SYNC-09 | 读anchor已ahead、清空local state/换机 | 新epoch重扫，不跳服务器latest时间 |
-| T-DELETE-01 | delete先到、旧sample后到 | tombstone持久，sample suppressed |
-| T-DELETE-02 | sample+delete同批 | delete胜出，计数可解释 |
-| T-DELETE-03 | 删除未见UUID/重复删除 | 幂等tombstone，不报假丢失 |
-| T-DELETE-04 | 删除sleep/height/HR/workout | 级联/links/日投影/latest全部失效 |
-| T-DELETE-05 | 撤权导致空query | 不自动删除服务器数据 |
-| T-RESTORE-01 | 恢复旧backup，客户端ACK更新 | generation改变，旧stream拒绝并重扫 |
-| T-RESTORE-02 | backup缺最近删除ledger | queries保持paused，不能读复活旧数据 |
-| T-RESTORE-03 | 活跃WAL在线备份、损坏备份 | 一致备份可恢复；损坏包拒绝替换 |
-| T-TIME-01 | New York DST春/秋 | 当地日23/25h，未硬编码86400 |
-| T-TIME-02 | 跨午夜sleep/energy，旅行/缺timezone | UTC原始不变，归属与估算明确 |
-| T-UNIT-01 | SpO2 0.97、HRV 0.05s、kg/lb、m/cm | canonical 0.97/50ms/正确换算，不double scale |
-| T-UNIT-02 | HRR1 native count/min兼容性 | 已验证结果；不相容必须blocked |
-| T-SOURCE-01 | iPhone+Watch重叠步数 | 原始全存，默认总量不直接相加 |
-| T-SLEEP-01 | inBed盖住REM/Core/Deep | sleep阶段不加inBed，时长正确 |
-| T-SLEEP-02 | stage冲突、多来源、午睡、gap | conflict/gap显式，wake_date规则稳定 |
-| T-WORKOUT-01 | 游泳只有distanceSwimming | 距离保留，不因走跑字段缺失而丢 |
-| T-WORKOUT-02 | events无lap长度/SWOLF | null+reason，不假设25m、不推每趟stroke |
-| T-WORKOUT-03 | 两个pause重叠/单边pause | 并集不重扣，单边uncertain |
-| T-SERIES-01 | 1001点，漏中间块/乱序/重放 | complete前不参与全部统计，finalize校验失败 |
-| T-SERIES-02 | finalize前删除parent | 任何晚到point都不复活parent |
-| T-SERIES-03 | 新generation已开始，旧generation迟到finalize | 拒绝激活旧generation，complete/current不倒退 |
-| T-REVISION-01 | 换手机后新stream seq1，旧detail seq200 | 按active stream身份替换，不能比较无关seq大小 |
-| T-HRR-01 | 样本够/少、负HRR、下一训练 | 符合公式；不足null，负数不归零 |
-| T-AGG-01 | 计算中有新raw修正 | CAS失败重排，不写过期投影 |
-| T-AUTH-01 | upload读/query写/revoke/过期 | 401/403，零健康数据 |
-| T-AUTH-02 | grant外metric/date/raw数据 | 403，不静默扩大或替换范围 |
-| T-QUERY-01 | 翻页期间revision变更 | cursor_stale，不能拼旧新页 |
-| T-QUERY-02 | raw不变但projection发布/政策变更 | cursor_stale，不能拼pending与已完成投影 |
-| T-LIMIT-01 | gzip bomb/重复JSON key/慢请求 | 有界拒绝，CPU/RSS不无界 |
-| T-MCP-01 | lifecycle、unknown tool、write tool | 标准握手/错误，无写工具、无SQL |
-| T-PRIVACY-01 | secret/payload/source文本置入各错误路径 | 捕获日志中完全找不到这些canary |
-| T-OAUTH-01 | code/refresh并发重放、PKCE错、audience错 | 最多一次成功，重放撤grant |
-| T-OAUTH-02 | CSRF/错误浏览器/redirect篡改 | 无code/token泄漏 |
+| C01 | 候选metric无设备证据 | 默认disabled，不能领取job |
+| C02 | 无start/数值/unit或无本地配置读取 | 相应profile/自动化blocked，不引App |
+| C03 | 查找返回1001条、同时间超过上限 | overflow，不截断，不epsilon分页 |
+| C04 | 两次触发/重入 | 单active plan，第二次run_busy |
+| C05 | 过期/被替代attempt晚到、旧generation | 409且零健康mutation |
+| C06 | server commit后ACK丢失 | 同attempt同内容原receipt；新attempt同完整快照不重复增量 |
+| C07 | 同attempt不同payload | 409，不用last-write-wins |
+| C08 | [A,A,B]→[B,A,A] | 同snapshot，三条multiplicity不丢 |
+| C09 | [A,A,B]→[A,B] | 新snapshot，两条；旧snapshot仍在，不推断删除 |
+| C10 | empty query / permission unknown | no_visible_data/current null；历史不清、不填0 |
+| C11 | query error/overflow/超时 | 失败状态，无成功空snapshot，旧值stale |
+| C12 | 同记录在两个查询边界返回 | 严格start归属一个窗口；上限触发仍保守overflow |
+| C13 | DST23/25h、跨日累计/睡眠 | UTC采集窗与IANA统计日分开，缺端点不编时长 |
+| C14 | SpO2单位%、fraction；HRV s/ms | 仅verified mapping转换，未知unit拒绝 |
+| C15 | source未知/两源重叠 | 不盲加官方日总量，不虚构Watch身份 |
+| C16 | profile改变/旧profile晚到 | 新policy，不混算窗口/字段语义 |
+| C17 | 两个相同items同snapshot | SQL保留两行，不建错误唯一键 |
+| C18 | 原始/质量变化发生于聚合或分页中 | CAS重算/cursor_stale，不混新旧 |
+| C19 | upload查询/query写/过期撤销 | 401/403，零健康值 |
+| C20 | gzip/超大JSON/重复key/NaN/未知字段/慢请求 | 有界拒绝，不partial ACK；当前协议不接受gzip输入 |
+| C21 | owner删除/解除exclusion/旧attempt重放 | 旧attempt不可重执行，410或409；仅新plan可重读 |
+| C22 | 旧备份缺最新exclusion | query保持暂停，owner复核，不能暴露旧敏感记录 |
+| C23 | 有活跃WAL备份/损坏快照/迁移失败 | 一致恢复，坏包拒绝，generation变化 |
+| C24 | 模板分享、日志、notification、诊断canary | 无token/健康值/原生ID/来源名泄漏 |
+| C25 | dense profile容量与计划预算 | 900秒profile默认on_demand；不能宣称每天一次即可全量细HR |
+| C26 | sleep有总时长无stage、swimming无lap/SWOLF、HRR2缺采样 | unsupported/null，不从SDK存在推断Shortcuts支持 |
+| C27 | MCP lifecycle、scope/output bounds、无SQL/write | SDK标准协议，REST/MCP同授权和quality |
+| C28 | OAuth PKCE/code/refresh重放、CSRF、redirect/audience | 按oauth.md，错误响应不能rollback必要撤销 |
 
-Fixture使用固定UUID、固定2026-01-01等合成日期，README写明synthetic。生成大数据放系统临时目录并清理；不得上传外部数据或真实HealthKit导出作为CI artifact。
+## 当前脚本范围
 
-## 真机验收记录格式
+本轮--full：机器schema自检、2正例/10反例、18表建库与FK/integrity、5个DDL负面案例，以及重复观测两行可保存。它不测试lease/事务业务实现、网络重试、语义hash、所有scope或真实单位转换。这些在S02/S03及对应阶段建立。
 
-只记录OS/SDK/匿名设备能力类别、测试ID、执行条件、预期、实际通过/失败/不可用、计数差异和问题编号。不能记录具体健康数值、sample UUID、截图中的用户信息、帐号token。
+Go阶段运行go test ./...、go test -race ./...、go vet ./...，发行前govulncheck及跨架构CGO=0构建。没有Swift/xcodebuild测试计划。iPhone动作/字段/错误/文件/锁屏由S01/S04a真实执行并分别记录，不用CI假通过。
 
-至少验证：锁屏/解锁、强制退出、低电量/后台刷新关闭、网络断开24h再恢复、72h后台观察、历史回填、多数据来源、删除与替换、游泳泳池/非泳池可用字段、quantity series、HealthKit有限历史窗口。没有相应设备的测试标not tested，不模拟成pass。
+## 真实验证与发布
 
-## 发布gate
+设备记录只含系统版本、动作名、字段有无/类型/unit/精度/条件与结论，无健康值/截图/token。无数据标no_visible_data不当“不支持”。使用真实健康窗口需要该次明确授权；synthetic HTTP探针不发送真实健康对象。
 
-1. 核心不变量自动化无失败；所有跳过项明确，不能忽略安全失败。
-2. 7天试运行与备份恢复演练完成；记录观测延迟而非固定后台保证。
-3. 1000万合成记录容量/性能测试记录环境、配置、样本分布与p95；WAL不持续无界增长。
-4. Go依赖漏洞扫描/许可证清单、iOS签名流程、日志canary扫描通过。
-5. AI功能需分别完成目标客户端实际授权/撤销测试；不兼容面关闭。
-6. README仍准确标识已实现/计划，open-source不包含隐私数据。
+自动化预算必须按已验证profile计算：每天新增窗口数+近期刷新+回填配额≤实测可执行job数并留余量。例如15分钟窗一天96个、七天672个，8job/次至少84次才能扫一遍，不能作为每天一次的默认承诺。定时模式先1–3个低密度指标；不足就提示缩小范围/手动补跑，不能吞掉队列或切App。
+
+S09至少7天观察实际触发/失败/待处理和完成延迟，备份恢复演练、日志canary、权限/签名无额外要求、模板本人iPhone导入验证。大数据压测仅人工合成且写临时目录。真实探针/MCP联调/Go业务未执行必须报告NOT RUN。

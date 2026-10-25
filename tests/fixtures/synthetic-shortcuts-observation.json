@@ -1,0 +1,47 @@
+{
+  "protocol": "shortcuts-1",
+  "plan_id": "00000000-0000-4000-8000-000000000001",
+  "job_id": "00000000-0000-4000-8000-000000000002",
+  "attempt_id": "00000000-0000-4000-8000-000000000003",
+  "server_generation": "00000000-0000-4000-8000-000000000004",
+  "publisher_epoch": "00000000-0000-4000-8000-000000000005",
+  "profile_id": "synthetic_hr_15m",
+  "profile_version": 1,
+  "metric": "heart_rate",
+  "window": {
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-01-01T00:15:00Z"
+  },
+  "captured_at": "2026-01-01T00:16:00Z",
+  "read_state": "observed",
+  "query_limit": 1001,
+  "limit_reached": false,
+  "items": [
+    {
+      "start": "2026-01-01T00:01:00Z",
+      "end": null,
+      "time_precision": "second",
+      "source_label": null,
+      "native_id": null,
+      "quantity": {
+        "value": 60,
+        "unit": "count/min"
+      },
+      "category": null,
+      "workout": null
+    },
+    {
+      "start": "2026-01-01T00:01:00Z",
+      "end": null,
+      "time_precision": "second",
+      "source_label": null,
+      "native_id": null,
+      "quantity": {
+        "value": 60,
+        "unit": "count/min"
+      },
+      "category": null,
+      "workout": null
+    }
+  ]
+}

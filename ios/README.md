@@ -1,3 +1,3 @@
-# iOS 骨架
+# 原生iOS路线已停止
 
-本轮无App、Swift Package或签名资产。P04起建立HealthBridgeCore；P05建立薄HealthBridgeApp。依赖、类型、持久状态和真机gate见 [ios-sync](../docs/ios-sync.md) 与 [roadmap](../docs/roadmap.md)。
+ADR-007已替代默认原生App路线。此目录仅保留说明，不得创建Swift Package、Xcode target、签名资产或GRDB依赖。当前采集交付见[shortcuts](../shortcuts/README.md)。原生基线保存在Git历史9dd9300，不是开发任务。

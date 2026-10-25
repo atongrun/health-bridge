@@ -1,7 +1,9 @@
 # ADR-001：原生iOS采集
 
 - 日期：2026-10-25
-- 状态：Accepted
+- 状态：Superseded by ADR-007（2026-10-25）
+
+> 历史决策，禁止作为当前开发依据。现行规范见[ADR-007](007-shortcuts-first.md)。
 
 ## 问题
 

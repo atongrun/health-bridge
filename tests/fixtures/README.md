@@ -1,5 +1,5 @@
-# 合成测试数据
+# 合成数据
 
-此目录仅存人为构造、与任何真人无关的数据。固定UUID和日期只是测试标识。禁止把Apple Health XML、真实workout、日志或脱敏不完整的导出放进此目录。
+只允许人为构造、与真人无关的fixtures。当前synthetic-shortcuts-observation.json包含同一时间同值的两个合法元素，用于证明快照去重不能损失multiplicity。
 
-当前只有初始samples batch形状，未覆盖完整同步行为。P01a补齐正反例、expected manifests与完整JSON Schema。现在的doc check不是业务测试。
+native-v1 fixture已删除，原始版本保存在Git历史。S02扩充空读取、overflow、晚到attempt、窗口交界、错单位等反例。不得提交个人Health导出、UUID、token或真实诊断。

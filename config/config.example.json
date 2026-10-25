@@ -6,18 +6,14 @@
   "admin_socket": "/run/healthbridge/admin.sock",
   "report_timezone": "Asia/Shanghai",
   "query_enabled": false,
-  "source_priority": {},
-  "derived_metrics": {
-    "wrist_temperature_delta_28d_enabled": false
-  },
   "limits": {
-    "batch_records": 500,
-    "body_bytes": 4194304,
+    "body_bytes": 2097152,
     "query_days": 366,
     "query_points": 1000,
     "response_bytes": 1048576,
     "query_concurrency": 4,
-    "writer_queue_capacity": 2
+    "writer_queue_capacity": 2,
+    "observation_records": 1000
   },
   "oauth": {
     "enabled": false,
@@ -34,5 +30,17 @@
   "logging": {
     "level": "info",
     "http_access_log": false
+  },
+  "collection": {
+    "protocol": "shortcuts-1",
+    "enabled_profiles": [],
+    "hot_lookback_days": 7,
+    "max_backfill_days": 31,
+    "jobs_per_plan": 8,
+    "lease_seconds": 900,
+    "recent_refresh_hours": 24,
+    "older_hot_refresh_days": 7,
+    "stale_grace_hours": 12,
+    "dense_metrics_mode": "on_demand"
   }
 }

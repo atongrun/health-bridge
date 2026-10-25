@@ -9,7 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install isolated design validation dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --disable-pip-version-check -r requirements-design.txt
       - name: Check documentation and synthetic design artifacts
-        run: python3 scripts/check_docs.py
+        run: .venv/bin/python scripts/check_docs.py --full
       - name: Check whitespace
         run: git show --format= --check HEAD
