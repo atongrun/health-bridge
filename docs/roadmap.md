@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）与 S03a（Go/SQLite 配置与权限）已完成；S01仍待本人iPhone真机验证，S03b–S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）、S03a（Go/SQLite 配置与权限）与 S03b（有限计划与原子快照接收）已完成；S01仍待本人iPhone真机验证，S04a/b、S05–S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -41,6 +41,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S03b — 有限计划与原子快照接收
 
 - 目标：有限计划与原子快照接收。
+- 状态：已完成（2026-10-25）。plan≤8/lease/单active、issued_order、整窗验证、multiset fingerprint、receipt/current pointer/dirty/revision同事务、认证先于body、限流/2MiB上限均已实现；synthetic client端到端（必过测试全绿，CI `go test`/`go vet`/交叉编译通过）。未启用真实profile，未部署生产（DoD：生产部署未授权不执行）。见 docs/evidence/validation.md。
 - 依赖/输入：S03a。
 - 文件边界：internal/collection/ingest/httpapi/store、对应integration tests。
 - 详细任务：实现plan≤8/lease/单active；issued_order、整窗验证、multiset fingerprint、receipt/current pointer/dirty同事务；认证先于body、限流/2MiB上限。
@@ -150,4 +151,4 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 
 ## 下一条明确任务
 
-> S02、S03a已完成。下一步：无设备时继续S03b（有限计划与原子快照接收，依赖S03a，需synthetic client端到端，不启用真实profile）；S01仍待本人iPhone按shortcuts-probe.md验证一个健康类型的字段/日期/单位/上限与合成本地配置读取，只记录能力结论，不安装Xcode、不做App，未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。
+> S02、S03a、S03b已完成。下一步：无设备时继续S05a（基础聚合与来源质量，依赖S03b，用golden合成fixture，不宣称Apple官方日总量）；S01仍待本人iPhone按shortcuts-probe.md验证一个健康类型的字段/日期/单位/上限与合成本地配置读取，S04a/b需要S01真机结论。未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。

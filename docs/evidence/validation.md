@@ -1,5 +1,16 @@
 # 验证记录
 
+## S03b 有限计划与原子快照接收（2026-10-25）
+
+构建/测试在 GitHub Actions；**未部署生产**（DoD：生产部署未授权不执行）。
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI 40202777990）：幂等重放、same attempt 不同 body 409、旧 attempt 晚到 409、重排同多重集合复用快照、multiplicity 变化新快照、空窗不删历史、单 active plan、failure、存储失败无 ACK |
+| go vet ./... | PASS |
+| CGO=0 交叉编译 amd64/arm64 | PASS |
+| 服务端点 | plan/observations/failure/status + /healthz 由 synthetic client 端到端验证；未启用真实 profile、无真实健康数据 |
+
 ## S03a Go/SQLite 配置与权限（2026-10-25）
 
 构建/测试在 GitHub Actions（Go 1.27.3 + modernc.org/sqlite v1.61.0，CGO=0），部署到 tx-vps 见 [deployment-s03a.md](deployment-s03a.md)。
