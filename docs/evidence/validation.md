@@ -1,5 +1,13 @@
 # 验证记录
 
+## S05a 基础聚合与来源质量（2026-10-25）
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI）：golden fixture 全绿（discrete full / cumulative 单源 sum / 多源 sum=null / missing 窗 null / partial coverage / 百分比 unit 保留 / empty no_visible_data）+ DST 23/25h 日界 + 重复重读不加倍 + profile 切换分行 + revision CAS + sleep/workout 跳过 |
+| go vet / 交叉编译 | PASS |
+| 验收 | 数值可追溯 profile/window/方法；累计多源 sum=null（不盲加官方 total）；不宣称 Health 官方 daily totals |
+
 ## S03b 有限计划与原子快照接收（2026-10-25）
 
 构建/测试在 GitHub Actions；**未部署生产**（DoD：生产部署未授权不执行）。

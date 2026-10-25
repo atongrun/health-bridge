@@ -12,10 +12,11 @@
 - `internal/auth`：32 字节随机 token，服务端 SHA-256，角色/撤销/到期校验，单 active publisher epoch。
 - `internal/collection`：Plan（≤8 job/15min lease/单 active）、SubmitObservation（issued_order 校验、multiset content_digest 去重、同 attempt 幂等重放 vs 409 conflict、snapshot/items/receipt/window 指针/dirty/revision 单事务）、RecordFailure、Status。
 - `internal/httpapi`：上传端点（`/v1/shortcuts/plan`、`/observations`、`/attempts/{id}/failure`、`/status`、`/healthz`）；认证先于 body、2MiB 上限、深度 8、重复 key/NaN/Inf/未知字段拒绝、30/min 限流、统一错误字典。
+- `internal/aggregate`：S05a 每日聚合——每窗最新成功 snapshot、IANA 日界（23/25h）、离散 min/mean/max/latest、累计仅单源求和（多源/未知 sum=null）、empty/failed/stale 默认 null、revision CAS。
 
 ## 尚未实现
 
-查询与 grant（S06）、OAuth/MCP（S07）、installer/备份/升级（S08）、聚合与日统计（S05a）。当前不提供任何健康查询端点。
+只读查询与 grant（S06）、睡眠/训练聚合（S05b）、OAuth/MCP（S07）、installer/备份/升级（S08）。当前不提供任何健康查询端点。
 
 ## 命令
 
