@@ -264,9 +264,6 @@ func (s *Service) SubmitObservation(pubID, pubEpoch string, obs Observation, req
 	if plan.ServerGeneration != obs.ServerGeneration {
 		return ACK{}, ErrGenerationChanged
 	}
-	if plan.State != "active" || plan.ExpiresAtUs <= now.UnixMicro() {
-		return ACK{}, ErrLeaseExpired
-	}
 	gen, err := s.generationTx(tx)
 	if err != nil {
 		return ACK{}, err
@@ -274,14 +271,9 @@ func (s *Service) SubmitObservation(pubID, pubEpoch string, obs Observation, req
 	if plan.ServerGeneration != gen {
 		return ACK{}, ErrGenerationChanged
 	}
-	winStart, winEnd, err := s.loadWindow(tx, att.JobID, obs)
-	if err != nil {
-		return ACK{}, err
-	}
-	if err := s.checkExcluded(tx, obs.Metric, winStart, winEnd); err != nil {
-		return ACK{}, err
-	}
 
+	// A stale attempt (a newer one was issued for this job) is rejected before
+	// any state is touched.
 	var latest int64
 	if err := tx.QueryRow("SELECT coalesce(max(issued_order),0) FROM collection_attempts WHERE job_id=?", att.JobID).Scan(&latest); err != nil {
 		return ACK{}, err
@@ -313,6 +305,19 @@ func (s *Service) SubmitObservation(pubID, pubEpoch string, obs Observation, req
 		// proceed
 	default:
 		return ACK{}, ErrAttemptSuperseded
+	}
+
+	// A committed attempt replays even if the lease has since lapsed; the lease
+	// gate applies only to a not-yet-committed attempt.
+	if plan.State != "active" || plan.ExpiresAtUs <= now.UnixMicro() {
+		return ACK{}, ErrLeaseExpired
+	}
+	winStart, winEnd, err := s.loadWindow(tx, att.JobID, obs)
+	if err != nil {
+		return ACK{}, err
+	}
+	if err := s.checkExcluded(tx, obs.Metric, winStart, winEnd); err != nil {
+		return ACK{}, err
 	}
 
 	digest, err := contentDigest(obs)

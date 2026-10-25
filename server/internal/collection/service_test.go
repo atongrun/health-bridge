@@ -252,11 +252,14 @@ func TestEmptyWindowKeepsHistory(t *testing.T) {
 	if status, _, _ := e.submit(t, buildObs(plan, job, []collection.Item{item}, "observed")); status != http.StatusOK {
 		t.Fatal("observed submit failed")
 	}
-	empty := buildObs(plan, job, nil, "no_visible_data")
+	// A later re-read of the same window finds nothing; it is a new attempt.
+	plan2, job2 := e.reissue(t, plan, job)
+	empty := buildObs(plan2, job2, nil, "no_visible_data")
 	status, ack, _ := e.submit(t, empty)
 	if status != http.StatusOK || ack.ReadState != "no_visible_data" || ack.ReceivedCount != 0 {
 		t.Fatalf("empty submit: status=%d ack=%+v", status, ack)
 	}
+	// The old snapshot must remain; only the current pointer moved.
 	if e.snapshotCount(t) != 2 {
 		t.Fatalf("history was deleted: snapshots=%d", e.snapshotCount(t))
 	}
