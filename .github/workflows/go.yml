@@ -1,0 +1,55 @@
+name: Go
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version: "1.27.3" # docs/reuse.md pinned baseline
+      - name: Resolve module graph
+        run: go mod tidy
+      - name: Verify module files are in sync (once go.sum is committed)
+        run: |
+          if git ls-files --error-unmatch go.sum >/dev/null 2>&1; then
+            git diff --exit-code -- go.mod go.sum || { echo "::error::go.mod/go.sum out of sync; run go mod tidy and commit"; exit 1; }
+          fi
+      - name: Test
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Cross-compile release binaries (CGO=0)
+        run: |
+          mkdir -p dist
+          for arch in amd64 arm64; do
+            CGO_ENABLED=0 GOOS=linux GOARCH=$arch \
+              go build -trimpath -ldflags='-s -w' \
+              -o dist/healthbridge-linux-$arch ./cmd/healthbridge
+          done
+      - name: Upload binaries
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: healthbridge-dist
+          path: server/dist/
+          if-no-files-found: error
+      - name: Upload module files (bootstrap round)
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: gomod
+          path: |
+            server/go.mod
+            server/go.sum
+          if-no-files-found: ignore
