@@ -10,6 +10,7 @@
 | go vet ./... | PASS |
 | CGO=0 交叉编译 amd64/arm64 | PASS |
 | 服务端点 | plan/observations/failure/status + /healthz 由 synthetic client 端到端验证；未启用真实 profile、无真实健康数据 |
+| tx-vps 部署（owner授权后） | `0.1.0-s03b` active：healthz 200；plan/status/observations 无 token 401；见 [deployment-s03b.md](deployment-s03b.md) |
 
 ## S03a Go/SQLite 配置与权限（2026-10-25）
 

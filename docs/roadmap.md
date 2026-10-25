@@ -41,7 +41,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S03b — 有限计划与原子快照接收
 
 - 目标：有限计划与原子快照接收。
-- 状态：已完成（2026-10-25）。plan≤8/lease/单active、issued_order、整窗验证、multiset fingerprint、receipt/current pointer/dirty/revision同事务、认证先于body、限流/2MiB上限均已实现；synthetic client端到端（必过测试全绿，CI `go test`/`go vet`/交叉编译通过）。未启用真实profile，未部署生产（DoD：生产部署未授权不执行）。见 docs/evidence/validation.md。
+- 状态：已完成（2026-10-25）。plan≤8/lease/单active、issued_order、整窗验证、multiset fingerprint、receipt/current pointer/dirty/revision同事务、认证先于body、限流/2MiB上限均已实现；synthetic client端到端（必过测试全绿，CI `go test`/`go vet`/交叉编译通过）。未启用真实profile。owner授权后已部署tx-vps（见 docs/evidence/deployment-s03b.md）。
 - 依赖/输入：S03a。
 - 文件边界：internal/collection/ingest/httpapi/store、对应integration tests。
 - 详细任务：实现plan≤8/lease/单active；issued_order、整窗验证、multiset fingerprint、receipt/current pointer/dirty同事务；认证先于body、限流/2MiB上限。
