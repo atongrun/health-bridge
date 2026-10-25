@@ -1,0 +1,47 @@
+{
+  "name": "discrete_full_coverage",
+  "day": "2026-01-02",
+  "timezone": "UTC",
+  "profiles": [
+    {"id": "p_hr", "metric": "heart_rate", "window_seconds": 86400, "enabled": true}
+  ],
+  "windows": [
+    {
+      "profile": "p_hr",
+      "start": "2026-01-02T00:00:00Z",
+      "read_state": "observed",
+      "committed_at": "2026-01-02T12:00:00Z",
+      "attempt_at": "2026-01-02T12:00:00Z",
+      "items": [
+        {"start": "2026-01-02T08:00:00Z", "value": 60, "unit": "count/min", "source": "Apple Watch"},
+        {"start": "2026-01-02T09:00:00Z", "value": 62, "unit": "count/min", "source": "Apple Watch"}
+      ]
+    }
+  ],
+  "expect": [
+    {
+      "metric": "heart_rate",
+      "profile_id": "p_hr",
+      "value": {
+        "unit": "count/min",
+        "min": 60,
+        "mean": 61,
+        "max": 62,
+        "sum": null,
+        "latest": {"value": 62, "measured_at": "2026-01-02T09:00:00Z"},
+        "n": 2
+      },
+      "quality": {
+        "status": "observed_partial",
+        "collection_method": "shortcuts_window_observation",
+        "identity_quality": "unverified",
+        "source_quality": "label_only",
+        "window_coverage": {"observed_windows": 1, "expected_windows": 1},
+        "last_observed_at": "2026-01-02T12:00:00Z",
+        "last_attempt_at": "2026-01-02T12:00:00Z",
+        "method_version": "sc-window-v1",
+        "limitations": ["shortcuts_window_observation_is_not_full_healthkit_coverage"]
+      }
+    }
+  ]
+}

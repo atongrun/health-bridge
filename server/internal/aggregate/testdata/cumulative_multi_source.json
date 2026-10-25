@@ -1,0 +1,50 @@
+{
+  "name": "cumulative_multi_source",
+  "day": "2026-01-02",
+  "timezone": "UTC",
+  "profiles": [
+    {"id": "p_steps", "metric": "step_count", "window_seconds": 86400, "enabled": true}
+  ],
+  "windows": [
+    {
+      "profile": "p_steps",
+      "start": "2026-01-02T00:00:00Z",
+      "read_state": "observed",
+      "committed_at": "2026-01-02T12:00:00Z",
+      "attempt_at": "2026-01-02T12:00:00Z",
+      "items": [
+        {"start": "2026-01-02T08:00:00Z", "value": 1000, "unit": "count", "source": "iPhone"},
+        {"start": "2026-01-02T09:00:00Z", "value": 1500, "unit": "count", "source": "Apple Watch"}
+      ]
+    }
+  ],
+  "expect": [
+    {
+      "metric": "step_count",
+      "profile_id": "p_steps",
+      "value": {
+        "unit": "count",
+        "min": null,
+        "mean": null,
+        "max": null,
+        "sum": null,
+        "latest": null,
+        "n": 2
+      },
+      "quality": {
+        "status": "observed_partial",
+        "collection_method": "shortcuts_window_observation",
+        "identity_quality": "unverified",
+        "source_quality": "unknown",
+        "window_coverage": {"observed_windows": 1, "expected_windows": 1},
+        "last_observed_at": "2026-01-02T12:00:00Z",
+        "last_attempt_at": "2026-01-02T12:00:00Z",
+        "method_version": "sc-window-v1",
+        "limitations": [
+          "shortcuts_window_observation_is_not_full_healthkit_coverage",
+          "multi_source_or_unknown_source_sum_null"
+        ]
+      }
+    }
+  ]
+}
