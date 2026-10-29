@@ -116,7 +116,11 @@ func TestMCPHandshakeToolsAndCall(t *testing.T) {
 	if status != http.StatusOK {
 		t.Fatalf("initialize status = %d body=%v", status, initResp)
 	}
-	if _, ok := initResp["result"].(map[string]any)["serverInfo"].(map[string]any); !ok {
+	initRes, ok := initResp["result"].(map[string]any)
+	if !ok {
+		t.Fatalf("initialize returned no result; body=%v", initResp)
+	}
+	if _, ok := initRes["serverInfo"].(map[string]any); !ok {
 		t.Fatalf("initialize result missing serverInfo: %v", initResp)
 	}
 
@@ -155,7 +159,10 @@ func TestMCPHandshakeToolsAndCall(t *testing.T) {
 	if status != http.StatusOK {
 		t.Fatalf("tools/call (paused) status = %d body=%v", status, callResp)
 	}
-	result := callResp["result"].(map[string]any)
+	result, ok := callResp["result"].(map[string]any)
+	if !ok {
+		t.Fatalf("tools/call returned no result; body=%v", callResp)
+	}
 	if result["isError"] != true {
 		t.Fatalf("paused call should be a tool error: %v", result)
 	}
@@ -176,7 +183,10 @@ func TestMCPHandshakeToolsAndCall(t *testing.T) {
 	if status != http.StatusOK {
 		t.Fatalf("tools/call status = %d body=%v", status, okResp)
 	}
-	res := okResp["result"].(map[string]any)
+	res, ok := okResp["result"].(map[string]any)
+	if !ok {
+		t.Fatalf("tools/call returned no result; body=%v", okResp)
+	}
 	if res["isError"] == true {
 		t.Fatalf("call failed: %v", res)
 	}
