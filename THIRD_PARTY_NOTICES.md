@@ -9,6 +9,8 @@
 | 依赖 | 版本 | License | 用途 |
 |---|---|---|---|
 | modernc.org/sqlite | v1.61.0 | BSD-3-Clause | 纯 Go SQLite 驱动 |
+| github.com/ory/fosite | v0.49.0 | Apache-2.0 | OAuth2 协议库（S07a-OAuth 核心，未部署 Ory Cloud） |
+| github.com/go-jose/go-jose/v3、gorilla/*、ory/x、pkg/errors 等 | 见 server/go.sum | Apache-2.0 / MIT / BSD-3-Clause | Fosite 传递依赖，发行时由锁文件生成 notices |
 | github.com/modelcontextprotocol/go-sdk | v1.8.0 | Apache-2.0（含保留的 MIT 贡献；实际 LICENSE 以发行包为准） | MCP 服务端 SDK（S07a） |
 | modernc.org/libc / memory / mathutil | v1.79.0 / v1.12.1 / v1.7.1 | BSD-3-Clause | sqlite 传递依赖 |
 | github.com/dustin/go-humanize | v1.1.0 | MIT | 传递依赖 |

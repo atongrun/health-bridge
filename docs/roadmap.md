@@ -115,7 +115,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S07a — MCP bearer与可选OAuth
 
 - 目标：MCP bearer与可选OAuth。
-- 状态：**部分完成（2026-10-25）**。MCP bearer 已落地：`/mcp` stateless+JSON，每请求 query 角色 bearer，无匿名；固定两个只读 tool（get_health_summary/get_samples），复用 REST query.Service 与 grant 校验，readOnlyHint=true，无 SQL/写/URL 工具；paused/forbidden 以 tool-level error 返回。CI 全绿。**OAuth（Fosite 限定 factory/PKCE/resource/local consent）尚未实现**，作为后续独立小提交；OAuth 未开启不阻塞采集。
+- 状态：**部分完成（2026-10-25）**。① MCP bearer 已落地：`/mcp` stateless+JSON，每请求 query 角色 bearer，无匿名；固定两个只读 tool（get_health_summary/get_samples），复用 REST query.Service 与 grant 校验，readOnlyHint=true，无 SQL/写/URL 工具；paused/forbidden 以 tool-level error 返回。CI 全绿。② OAuth 协议核心已落地：Fosite 仅启用 authorize-code/refresh/PKCE/revocation/introspection factory，HMAC opaque token，SQLite 会话存储（版本化 JSON、form 白名单、oauth_grants family 锚点）、PKCE 仅 S256、code 60s/access 15m/refresh 30d、code 与 refresh 重放撤销整 grant、撤销即时生效、重启后 token 仍有效。**尚未实现**：`/oauth/authorize|token|revoke` HTTP 端点、consent 页面与 CLI approve、discovery 元数据、MCP 接受 OAuth access token、跨浏览器/CSRF/并发兑换测试。OAuth 默认关闭，不阻塞采集。
 - 依赖/输入：S06b。
 - 文件边界：internal/mcp/oauth、OAuth migrations、notices。
 - 详细任务：官方SDK固定只读tool；先bearer；Fosite限定factory/持久store/PKCE/resource/预注册client/local consent，按独立小提交实现。

@@ -1,5 +1,14 @@
 # 验证记录
 
+## S07a OAuth 协议核心（2026-10-25）
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI）：预注册 client 校验（非 HTTPS/片段/通配符/public+secret 拒绝）、S256 code 兑换、错误 code_verifier 拒绝、plain challenge 拒绝、code 重放撤销整 grant、refresh 轮换且旧 token 重放撤销整 family、refresh 不得扩权到 health:raw、重启后 token 可 introspect、撤销立即生效 |
+| 实现 | Fosite v0.49.0 仅 compose authorize-code/refresh/PKCE/revocation/introspection；HMAC opaque token；SQLite 会话（版本化 JSON、form 白名单、oauth_grants family、嵌套事务适配器）；code 60s/access 15m/refresh 30d；PKCE 仅 S256 |
+| 修复 | 漏注册 introspection factory；RotateRefreshToken 方向错误；inactive refresh 未随错误返回原请求（库内空指针）；state 最小熵 |
+| 未实现 | /oauth/* HTTP 端点、consent 页面与 CLI approve、discovery、MCP 接受 OAuth token、CSRF/跨浏览器/并发兑换测试（OAuth-B） |
+
 ## S07a MCP bearer（2026-10-25）
 
 | 检查 | 实际结果 |
