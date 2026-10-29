@@ -112,6 +112,14 @@ func (e *oenv) exchange(t *testing.T, code, verifier string) (fosite.AccessRespo
 	return e.provider.NewAccessResponse(ctx, ar)
 }
 
+// refreshToken reads the rotated refresh token from the access responder extras.
+func refreshToken(resp fosite.AccessResponder) string {
+	if v, ok := resp.GetExtra("refresh_token").(string); ok {
+		return v
+	}
+	return ""
+}
+
 func (e *oenv) refresh(t *testing.T, token string) (fosite.AccessResponder, error) {
 	t.Helper()
 	form := url.Values{}
@@ -174,7 +182,7 @@ func TestCodeExchangeWithPKCES256(t *testing.T) {
 	if err != nil {
 		t.Fatalf("exchange: %v", err)
 	}
-	if resp.GetAccessToken() == "" || resp.GetRefreshToken() == "" {
+	if resp.GetAccessToken() == "" || refreshToken(resp) == "" {
 		t.Fatalf("missing tokens: %+v", resp)
 	}
 }
@@ -216,7 +224,7 @@ func TestCodeReuseRevokesGrant(t *testing.T) {
 	// ...and the reuse must have revoked the grant's tokens.
 	access := resp.GetAccessToken()
 	ctx := t.Context()
-	_, err = e.provider.IntrospectToken(ctx, access, fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"})
+	_, _, err = e.provider.IntrospectToken(ctx, access, fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"})
 	if err == nil {
 		t.Fatal("access token still active after code reuse")
 	}
@@ -229,12 +237,12 @@ func TestRefreshRotationAndReuseRevokes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	oldRefresh := first.GetRefreshToken()
+	oldRefresh := refreshToken(first)
 	second, err := e.refresh(t, oldRefresh)
 	if err != nil {
 		t.Fatalf("first refresh: %v", err)
 	}
-	if second.GetRefreshToken() == oldRefresh {
+	if refreshToken(second) == oldRefresh {
 		t.Fatal("refresh token was not rotated")
 	}
 	// Reusing the rotated-out token must fail and revoke the whole family.
@@ -242,7 +250,7 @@ func TestRefreshRotationAndReuseRevokes(t *testing.T) {
 		t.Fatal("rotated refresh token accepted")
 	}
 	ctx := t.Context()
-	if _, err := e.provider.IntrospectToken(ctx, second.GetAccessToken(), fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err == nil {
+	if _, _, err := e.provider.IntrospectToken(ctx, second.GetAccessToken(), fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err == nil {
 		t.Fatal("access token survived refresh reuse")
 	}
 }
@@ -256,7 +264,7 @@ func TestRefreshScopeEscalationRejected(t *testing.T) {
 	}
 	form := url.Values{}
 	form.Set("grant_type", "refresh_token")
-	form.Set("refresh_token", first.GetRefreshToken())
+	form.Set("refresh_token", refreshToken(first))
 	form.Set("scope", "health:raw")
 	req := httptest.NewRequest("POST", "/oauth/token", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -286,7 +294,7 @@ func TestSessionsSurviveRestart(t *testing.T) {
 	defer db2.Close()
 	st2 := &oauth.Store{DB: db2}
 	p2 := oauth.NewProvider(st2, []byte(strings.Repeat("k", 32)), "https://health.example.com")
-	if _, err := p2.IntrospectToken(t.Context(), resp.GetAccessToken(), fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err != nil {
+	if _, _, err := p2.IntrospectToken(t.Context(), resp.GetAccessToken(), fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err != nil {
 		t.Fatalf("token did not survive restart: %v", err)
 	}
 }
@@ -300,7 +308,7 @@ func TestRevocationIsImmediate(t *testing.T) {
 	}
 	access := resp.GetAccessToken()
 	ctx := t.Context()
-	if _, err := e.provider.IntrospectToken(ctx, access, fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err != nil {
+	if _, _, err := e.provider.IntrospectToken(ctx, access, fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err != nil {
 		t.Fatalf("token not active before revocation: %v", err)
 	}
 	form := url.Values{"token": {access}}
@@ -310,7 +318,7 @@ func TestRevocationIsImmediate(t *testing.T) {
 	if err := e.provider.NewRevocationRequest(ctx, req); err != nil {
 		t.Fatalf("revocation request: %v", err)
 	}
-	if _, err := e.provider.IntrospectToken(ctx, access, fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err == nil {
+	if _, _, err := e.provider.IntrospectToken(ctx, access, fosite.AccessToken, &fosite.DefaultSession{Subject: "owner"}); err == nil {
 		t.Fatal("token still active after revocation")
 	}
 }
