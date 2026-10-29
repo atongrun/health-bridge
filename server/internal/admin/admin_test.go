@@ -282,7 +282,7 @@ func TestPurgedAttemptCannotReexecuteEvenAfterExclusionRemoved(t *testing.T) {
 		Metric: "heart_rate", Window: collection.Window{Start: start, End: time.UnixMicro(e.endUs).UTC().Format(time.RFC3339)},
 		CapturedAt: time.Now().UTC().Format(time.RFC3339), ReadState: "no_visible_data", QueryLimit: 1001,
 	}
-	if _, err := svc.SubmitObservation(e.pubID, e.epoch, obs, "deadbeef", time.Now()); !errors.Is(err, collection.ErrAttemptSuperseded) {
+	if _, err := svc.SubmitObservation(e.pubID, e.epoch, obs, strings.Repeat("a", 64), time.Now()); !errors.Is(err, collection.ErrAttemptSuperseded) {
 		t.Fatalf("purged attempt re-executed or wrong error: %v", err)
 	}
 }
@@ -324,7 +324,7 @@ func TestIngestBlockedByExclusion(t *testing.T) {
 		},
 		CapturedAt: time.Now().UTC().Format(time.RFC3339), ReadState: "no_visible_data", QueryLimit: 1001,
 	}
-	if _, err := svc.SubmitObservation(e.pubID, e.epoch, obs, "feedface", time.Now()); !errors.Is(err, collection.ErrCollectionExcl) {
+	if _, err := svc.SubmitObservation(e.pubID, e.epoch, obs, strings.Repeat("b", 64), time.Now()); !errors.Is(err, collection.ErrCollectionExcl) {
 		t.Fatalf("expected ErrCollectionExcl, got %v", err)
 	}
 }

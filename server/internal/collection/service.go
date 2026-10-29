@@ -568,8 +568,9 @@ func (s *Service) loadWindow(tx *sql.Tx, jobID string, obs Observation) (int64, 
 
 func (s *Service) checkExcluded(tx *sql.Tx, metric string, startUs, endUs int64) error {
 	var n int
-	if err := tx.QueryRow("SELECT count(*) FROM owner_exclusions WHERE metric=? AND start_us<=? AND end_us>?",
-		metric, startUs, endUs).Scan(&n); err != nil {
+	// Overlap test: exclusion.start < window.end AND exclusion.end > window.start.
+	if err := tx.QueryRow("SELECT count(*) FROM owner_exclusions WHERE metric=? AND start_us<? AND end_us>?",
+		metric, endUs, startUs).Scan(&n); err != nil {
 		return err
 	}
 	if n > 0 {
