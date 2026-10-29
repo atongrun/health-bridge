@@ -13,10 +13,11 @@
 - `internal/collection`：Plan（≤8 job/15min lease/单 active）、SubmitObservation（issued_order 校验、multiset content_digest 去重、同 attempt 幂等重放 vs 409 conflict、snapshot/items/receipt/window 指针/dirty/revision 单事务）、RecordFailure、Status。
 - `internal/httpapi`：上传端点（`/v1/shortcuts/plan`、`/observations`、`/attempts/{id}/failure`、`/status`、`/healthz`）；认证先于 body、2MiB 上限、深度 8、重复 key/NaN/Inf/未知字段拒绝、30/min 限流、统一错误字典。
 - `internal/aggregate`：S05a 每日聚合——每窗最新成功 snapshot、IANA 日界（23/25h）、离散 min/mean/max/latest、累计仅单源求和（多源/未知 sum=null）、empty/failed/stale 默认 null、revision CAS。
+- `internal/query`：S06a 只读查询——`/v1/query/summary`（日统计）与 `/v1/query/samples`（原始 quantity），跑在独立只读连接上；grant 校验 scope/metric/max_days，HMAC cursor 绑定 revision，`queries_paused` 默认 503，DTO 不透传 source 字段。
 
 ## 尚未实现
 
-只读查询与 grant（S06）、睡眠/训练聚合（S05b）、OAuth/MCP（S07）、installer/备份/升级（S08）。当前不提供任何健康查询端点。
+owner 导出/删除/恢复（S06b）、睡眠/训练聚合（S05b）、OAuth/MCP（S07）、installer/备份/升级（S08）。查询端点默认暂停（`queries_paused=1`），需 owner 显式启用。
 
 ## 命令
 

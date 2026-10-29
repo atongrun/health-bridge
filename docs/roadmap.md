@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）、S03a（Go/SQLite 配置与权限）、S03b（有限计划与原子快照接收）与 S05a（基础聚合与来源质量）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b–S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）、S03a（Go/SQLite）、S03b（有限计划与原子快照接收）、S05a（基础聚合）与 S06a（只读查询与grant）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S06b–S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -93,6 +93,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S06a — 只读查询与grant
 
 - 目标：只读查询与grant。
+- 状态：已完成（2026-10-25）。`/v1/query/summary`与`/v1/query/samples`落在独立只读连接；grant校验scope/metric白名单/max_days（超范围403）；HMAC cursor绑定observation/projection revision（变更409）15分钟过期；queries_paused默认503；upload token不能查询、query token不能上传；samples不透传source_label/native_id/source_json。CI测试全绿。
 - 依赖/输入：S05a；条件模块可按未支持状态上线。
 - 文件边界：internal/query/httpapi、output schema。
 - 详细任务：固定端点，summary/raw/sleep/workout scopes、metric/date交集、cursor版本、1MiB/1000条、quality/freshness；不提供历史snapshot遍历给AI。
@@ -152,4 +153,4 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 
 ## 下一条明确任务
 
-> S02、S03a、S03b、S05a已完成。下一步：无设备时继续S06a（只读查询与grant，依赖S05a，固定summary/raw/sleep/workout scopes、metric/date交集、cursor版本、1MiB/1000条、quality/freshness）；S01仍待本人iPhone按shortcuts-probe.md验证，S04a/b与S05b需要S01真机结论。未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。
+> S02、S03a、S03b、S05a、S06a已完成。下一步：无设备时继续S06b（owner导出/删除/恢复，依赖S06a，只在隔离合成库演练）；S01仍待本人iPhone按shortcuts-probe.md验证，S04a/b、S05b需要S01真机结论。未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。

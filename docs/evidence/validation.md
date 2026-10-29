@@ -1,5 +1,13 @@
 # 验证记录
 
+## S06a 只读查询与 grant（2026-10-25）
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI）：summary happy path（DTO 无 profile/source 泄漏）、upload token 查询 403、grant metric/max_days 越界 403、cursor 分页 + revision 变更 409、queries_paused 503、只读连接拒写、samples 不透传 source_label/native_id/source_json |
+| 实现要点 | 独立只读连接（mode=ro）；HMAC cursor 绑定 observation/projection revision，15 分钟过期；单连接池下先关闭 rows 再查询（修复了 CI 中发现的死锁超时） |
+| 边界 | 查询默认 `queries_paused=1`，未启用；未访问真实健康数据 |
+
 ## S05a 基础聚合与来源质量（2026-10-25）
 
 | 检查 | 实际结果 |
