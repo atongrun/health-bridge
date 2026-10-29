@@ -64,7 +64,8 @@ func (e *oenv) authURL(scope, verifier, state string) string {
 	q.Set("response_type", "code")
 	q.Set("redirect_uri", testRedirect)
 	q.Set("scope", scope)
-	q.Set("state", state)
+	// Fosite enforces MinParameterEntropy on state; use a realistic 32+ char value.
+	q.Set("state", "state-"+state+"-0123456789abcdef0123456789")
 	q.Set("code_challenge", challenge(verifier))
 	q.Set("code_challenge_method", "S256")
 	return "/oauth/authorize?" + q.Encode()
