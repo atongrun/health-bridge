@@ -319,6 +319,10 @@ func (s *Service) QueryDaily(g Grant, metrics []string, start, end string, limit
 	if err := rows.Err(); err != nil {
 		return resp, err
 	}
+	// Close before any further query: this pool has a single connection.
+	if err := rows.Close(); err != nil {
+		return resp, err
+	}
 	truncated := count == limit
 	tz, err := s.timezone()
 	if err != nil {
@@ -410,6 +414,10 @@ func (s *Service) QuerySamples(g Grant, metric, start, end string, limit int, no
 		}
 	}
 	if err := rows.Err(); err != nil {
+		return resp, err
+	}
+	// Close before any further query: this pool has a single connection.
+	if err := rows.Close(); err != nil {
 		return resp, err
 	}
 	tz, err := s.timezone()
