@@ -283,10 +283,8 @@ func TestRefreshScopeEscalationRejected(t *testing.T) {
 	if err != nil {
 		return
 	}
-	for _, sc := range resp.GetScopes() {
-		if sc == "health:raw" {
-			t.Fatal("refresh escalated scope to health:raw")
-		}
+	if scope, _ := resp.ToMap()["scope"].(string); strings.Contains(scope, "health:raw") {
+		t.Fatalf("refresh escalated scope to health:raw (granted: %q)", scope)
 	}
 }
 
