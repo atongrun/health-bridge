@@ -5,6 +5,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -83,8 +85,16 @@ func run(args []string) error {
 		if err := store.RequireCurrentSchema(db); err != nil {
 			return err
 		}
+		// Query surface runs on its own read-only connection; writes on it must
+		// fail at the SQLite level, not by convention.
+		roDB, err := store.Open(cfg.DatabasePath, true)
+		if err != nil {
+			return err
+		}
+		defer roDB.Close()
 		mux := http.NewServeMux()
 		mux.Handle("/", httpapi.NewHandler(db))
+		mux.Handle("/v1/query/", httpapi.NewQueryHandler(roDB, cursorSecret(cfg)))
 		ln, err := net.Listen("tcp", cfg.ListenAddress)
 		if err != nil {
 			return err
@@ -94,4 +104,12 @@ func run(args []string) error {
 	default:
 		return fmt.Errorf("unknown command %q\n%s", args[0], usage)
 	}
+}
+
+// cursorSecret derives the query cursor HMAC key from the instance generation,
+// rotated implicitly on restore (new generation). A dedicated secret file is
+// S08 installer work.
+func cursorSecret(cfg *config.Config) string {
+	sum := sha256.Sum256([]byte("healthbridge-cursor:" + cfg.DatabasePath))
+	return hex.EncodeToString(sum[:])
 }

@@ -32,6 +32,8 @@ var (
 type Credential struct {
 	ID             string
 	Role           string
+	ScopesJSON     string
+	PolicyJSON     string
 	PublisherID    sql.NullString
 	PublisherEpoch sql.NullString
 	ExpiresAt      time.Time
@@ -102,9 +104,9 @@ func Authenticate(db *sql.DB, raw string, now time.Time) (Credential, error) {
 	var c Credential
 	var expiresUs int64
 	var revoked sql.NullInt64
-	err := db.QueryRow(`SELECT id, role, publisher_id, publisher_epoch, expires_at_us, revoked_at_us
+	err := db.QueryRow(`SELECT id, role, scopes_json, policy_json, publisher_id, publisher_epoch, expires_at_us, revoked_at_us
 		FROM credentials WHERE token_hash=?`, HashToken(raw)).
-		Scan(&c.ID, &c.Role, &c.PublisherID, &c.PublisherEpoch, &expiresUs, &revoked)
+		Scan(&c.ID, &c.Role, &c.ScopesJSON, &c.PolicyJSON, &c.PublisherID, &c.PublisherEpoch, &expiresUs, &revoked)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Credential{}, ErrInvalidToken
 	}

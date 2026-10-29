@@ -44,6 +44,12 @@ func NewHandler(db *sql.DB) *Handler {
 	}
 }
 
+// NewQueryHandler builds the read-only query handler over a separate
+// read-only database connection.
+func NewQueryHandler(roDB *sql.DB, cursorSecret string) http.Handler {
+	return newQueryHandler(roDB, cursorSecret)
+}
+
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	switch {
