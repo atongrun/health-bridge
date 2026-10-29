@@ -36,6 +36,7 @@ func NewProvider(store *Store, globalSecret []byte, issuer string) fosite.OAuth2
 		compose.OAuth2RefreshTokenGrantFactory,
 		compose.OAuth2PKCEFactory,
 		compose.OAuth2TokenRevocationFactory,
+		compose.OAuth2TokenIntrospectionFactory,
 	)
 }
 

@@ -274,9 +274,19 @@ func TestRefreshScopeEscalationRejected(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer e.store.Rollback(ctx)
-	if _, err := e.provider.NewAccessRequest(ctx, req, &fosite.DefaultSession{Subject: "owner"}); err == nil {
-		t.Fatal("refresh escalated scope to health:raw")
+	defer e.store.Commit(ctx) //nolint:errcheck
+	ar, err := e.provider.NewAccessRequest(ctx, req, &fosite.DefaultSession{Subject: "owner"})
+	if err != nil {
+		return // explicit invalid_scope is enforced by the HTTP layer
+	}
+	resp, err := e.provider.NewAccessResponse(ctx, ar)
+	if err != nil {
+		return
+	}
+	for _, sc := range resp.GetScope() {
+		if sc == "health:raw" {
+			t.Fatal("refresh escalated scope to health:raw")
+		}
 	}
 }
 

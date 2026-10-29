@@ -431,11 +431,13 @@ func (s *Store) DeleteRefreshTokenSession(ctx context.Context, signature string)
 	return err
 }
 
-// RotateRefreshToken deactivates the previous refresh token in the same family.
+// RotateRefreshToken deactivates every refresh token of the family. Fosite
+// calls it before inserting the replacement, so the presented token dies here;
+// access tokens are left to their own expiry (the grant's absolute 30-day
+// limit is enforced by refresh expiry and owner revocation).
 func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, refreshTokenSignature string) error {
 	_, err := s.q(ctx).ExecContext(ctx,
-		"UPDATE oauth_sessions SET active=0 WHERE kind='refresh' AND request_id=? AND signature<>?",
-		requestID, refreshTokenSignature)
+		"UPDATE oauth_sessions SET active=0 WHERE kind='refresh' AND request_id=?", requestID)
 	return err
 }
 
