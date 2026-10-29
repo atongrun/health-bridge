@@ -45,7 +45,7 @@ S02新增`scripts/check_contracts.py`（同样需要requirements-design.txt的�
 
 Go阶段运行go test ./...、go test -race ./...、go vet ./...，发行前govulncheck及跨架构CGO=0构建。没有Swift/xcodebuild测试计划。iPhone动作/字段/错误/文件/锁屏由S01/S04a真实执行并分别记录，不用CI假通过。
 
-S03a起 Go 测试与交叉编译在 `.github/workflows/go.yml` 执行（Go 1.27.3，不用本机 Go）；覆盖空库/失败迁移、只读拒写、profile gate、token 生命周期、单 active publisher。S03b 增加 synthetic client 端到端集成测试。S05a 用 golden 合成 fixture 校验聚合输出（full/partial/missing/empty coverage、单源 vs 多源累计、百分比 unit、DST 23/25h 日界、重复重读、profile 切换、revision CAS）。S06a 增加查询测试（upload/query 凭据互斥、grant 403、cursor 409、paused 503、source 字段不透传）。`go test -race` 与 `govulncheck` 仍待补充到 CI。
+S03a起 Go 测试与交叉编译在 `.github/workflows/go.yml` 执行（Go 1.27.3，不用本机 Go）；覆盖空库/失败迁移、只读拒写、profile gate、token 生命周期、单 active publisher。S03b 增加 synthetic client 端到端集成测试。S05a 用 golden 合成 fixture 校验聚合输出（full/partial/missing/empty coverage、单源 vs 多源累计、百分比 unit、DST 23/25h 日界、重复重读、profile 切换、revision CAS）。S06a 增加查询测试（upload/query 凭据互斥、grant 403、cursor 409、paused 503、source 字段不透传）。S07a 增加 MCP 测试（匿名/upload-token 拒绝、initialize、tools/list 只读标记、paused tool error、DTO 无敏感字段）。`go test -race` 与 `govulncheck` 仍待补充到 CI。
 
 ## 真实验证与发布
 

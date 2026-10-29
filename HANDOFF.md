@@ -4,7 +4,7 @@
 
 ## 当前事实
 
-- 本轮完成 **S02、S03a、S03b、S05a、S06a 与 S06b（owner导出/删除/恢复）**。已移除原生App路线残留目录`ios/`。
+- 本轮完成 **S02、S03a、S03b、S05a、S06a、S06b 与 S07a-bearer（MCP 只读 tool）**。已移除原生App路线残留目录`ios/`。
 - 用户硬约束：系统快捷指令优先；不交开发者年费；不装Xcode；不做7天续签；不把自研App作为依赖。**Go 构建/测试走 GitHub Actions，不用本机 Go；S03a 骨架已部署 tx-vps。**
 - [ADR-007](docs/decisions/007-shortcuts-first.md)替代原生采集及其同步协议。旧P01–P11不可执行，当前路线为S01–S09。
 - Go+SQLite单体、独立MIT仓、只读HTTP/MCP、自有VPS和无健康云边界保留。
@@ -14,12 +14,13 @@
 - S05a：`internal/aggregate`（每窗一snapshot、IANA日界23/25h、离散min/mean/max/latest、累计仅单源求和、empty/failed/stale默认null、revision CAS）；golden合成fixture全绿。未宣称Health官方日总量。
 - S06a：`internal/query` + `/v1/query/summary`与`/samples`（独立只读连接）；grant scope/metric/max_days校验、HMAC cursor绑定revision（409）、queries_paused 503、samples不透传source字段；upload/query凭据互斥。CI全绿。查询默认保持暂停（`queries_paused=1`），未启用（S06b/owner确认后再开放）。
 - S06b：`internal/admin`——VACUUM INTO一致备份（含WAL）+integrity/FK + 计数manifest、metric/window范围删除（dry-run、清指针、删snapshot/items/receipt、attempt→purged、exclusion）、私有export（无credentials/source_json）、restore（新generation、撤销凭据、废弃plans/attempts、保持paused）。CI全绿；只在合成库演练，未对生产库执行删除/恢复。
+- S07a-bearer：`internal/mcpsrv` + `/mcp`（官方 SDK v1.8.0，stateless+JSON）；每请求 query bearer、无匿名；两个只读 tool 复用 query.Service/grant；readOnlyHint；无 SQL/写/URL；paused/forbidden 为 tool error。CI 全绿。**OAuth 未实现**，留后续独立提交。
 - 原生UUID/anchor/outbox协议已删除；无迁移/兼容层。原文见Git 9dd9300。五项目源码调查仍有效；Swift/GRDB暂停；服务端未引框架/ORM/Redis/LLM SDK。
 - 本机无可操作的已授权iPhone健康环境；**S01真机字段/本地配置与S04a HTTP行为尚未验证**。未访问真实健康数据，未创建任何 token、未启用任何 profile。
 
 ## 下一任务
 
-两个可无设备推进的方向，选一：S07a（MCP bearer与可选OAuth，依赖S06b；先bearer、再Fosite限定OAuth，禁匿名降级）或S08（安装/升级/加密备份发行，依赖S06b）。S01真机探针仍是S04a/b与S05b的前置，未验证不得启用任何metric。
+无设备可推进：S07a-OAuth（Fosite 限定 factory/持久 store/PKCE/resource/预注册 client/local consent，独立小提交，禁匿名降级）或 S08（安装/升级/加密备份发行）。S01真机探针仍是S04a/b、S05b、S07b的前置，未验证不得启用任何metric。
 
 不能把S01写成已通过、启用未经验证的metric，或用Xcode补gate。禁止照旧App路线开发。生产变更（真实token、启用profile、开启查询、对生产库删除/恢复、HTTPS）均需owner对应授权。
 

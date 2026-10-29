@@ -1,5 +1,14 @@
 # 验证记录
 
+## S07a MCP bearer（2026-10-25）
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI）：匿名 initialize 401、upload token 403、initialize 握手返回 serverInfo、tools/list 仅含 get_health_summary/get_samples 且 readOnlyHint=true、无 SQL/写/URL 工具、paused 时 tool-level error 不伪造数据、开启后返回 DTO 且无 source_json/token_hash/profile_id |
+| SDK | modelcontextprotocol/go-sdk v1.8.0（固定基线），stateless + JSONResponse；模块图由 CI 生成后回填 |
+| 修复 | 工具输出 schema 校验导致错误分支零值 quality=null 冲突 → 改为 omitempty 指针输出 |
+| 未实现 | OAuth（Fosite）留后续独立提交；未启用任何查询/token |
+
 ## S06b owner 导出/删除/恢复（2026-10-25）
 
 | 检查 | 实际结果 |

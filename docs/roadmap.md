@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）、S03a（Go/SQLite）、S03b（有限计划与原子快照接收）、S05a（基础聚合）、S06a（只读查询与grant）与 S06b（owner导出/删除/恢复）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07–S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02、S03a、S03b、S05a、S06a、S06b 与 S07a（MCP bearer，OAuth 待后续提交）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07a-OAuth、S07b、S08–S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -115,6 +115,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S07a — MCP bearer与可选OAuth
 
 - 目标：MCP bearer与可选OAuth。
+- 状态：**部分完成（2026-10-25）**。MCP bearer 已落地：`/mcp` stateless+JSON，每请求 query 角色 bearer，无匿名；固定两个只读 tool（get_health_summary/get_samples），复用 REST query.Service 与 grant 校验，readOnlyHint=true，无 SQL/写/URL 工具；paused/forbidden 以 tool-level error 返回。CI 全绿。**OAuth（Fosite 限定 factory/PKCE/resource/local consent）尚未实现**，作为后续独立小提交；OAuth 未开启不阻塞采集。
 - 依赖/输入：S06b。
 - 文件边界：internal/mcp/oauth、OAuth migrations、notices。
 - 详细任务：官方SDK固定只读tool；先bearer；Fosite限定factory/持久store/PKCE/resource/预注册client/local consent，按独立小提交实现。
@@ -154,4 +155,4 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 
 ## 下一条明确任务
 
-> S02、S03a、S03b、S05a、S06a、S06b已完成。下一步：S01真机能力探针是S04a/b与S05b的前置；无设备时可先做S07a（MCP bearer与可选OAuth，依赖S06b，先bearer后Fosite OAuth，禁匿名降级）或S08（安装/升级/加密备份发行）。未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。
+> S02、S03a、S03b、S05a、S06a、S06b、S07a-bearer已完成。下一步：无设备时先做S07a-OAuth（Fosite 限定 factory/持久 store/PKCE/resource/预注册 client/local consent，独立小提交；禁匿名降级）或S08（安装/升级/加密备份发行）。S01真机能力探针仍是S04a/b、S05b、S07b的前置；未验证不得启用任何metric。完成后更新HANDOFF与能力记录。
