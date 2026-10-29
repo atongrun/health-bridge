@@ -283,7 +283,7 @@ func TestRefreshScopeEscalationRejected(t *testing.T) {
 	if err != nil {
 		return
 	}
-	for _, sc := range resp.GetScope() {
+	for _, sc := range resp.GetScopes() {
 		if sc == "health:raw" {
 			t.Fatal("refresh escalated scope to health:raw")
 		}
