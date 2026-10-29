@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）、S03a（Go/SQLite）、S03b（有限计划与原子快照接收）、S05a（基础聚合）与 S06a（只读查询与grant）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S06b–S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02（合成契约）、S03a（Go/SQLite）、S03b（有限计划与原子快照接收）、S05a（基础聚合）、S06a（只读查询与grant）与 S06b（owner导出/删除/恢复）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07–S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -104,6 +104,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S06b — owner导出/删除/恢复
 
 - 目标：owner导出/删除/恢复。
+- 状态：已完成（2026-10-25）。`internal/admin`：VACUUM INTO一致备份（含WAL）+integrity/FK/checksum+仅计数的manifest；metric/window范围删除（dry-run计数、清指针、删snapshot/items/receipt、attempt置purged、写exclusion）；私有export（无credentials/source_json）；restore轮换generation、撤销凭据、废弃plans/attempts、保持queries_paused。测试覆盖WAL一致性、损坏备份拒绝、purged attempt不可重放（解除exclusion后仍拒绝）、exclusion阻止新上传。只在隔离合成库演练。
 - 依赖/输入：S06a。
 - 文件边界：internal/admin、backup/export/delete/restore测试、deployment。
 - 详细任务：一致备份；metric/window范围删除+exclusion；清指针后purge；purged attempt不能重执行；恢复generation/旧secret撤销/query pause。
@@ -153,4 +154,4 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 
 ## 下一条明确任务
 
-> S02、S03a、S03b、S05a、S06a已完成。下一步：无设备时继续S06b（owner导出/删除/恢复，依赖S06a，只在隔离合成库演练）；S01仍待本人iPhone按shortcuts-probe.md验证，S04a/b、S05b需要S01真机结论。未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。
+> S02、S03a、S03b、S05a、S06a、S06b已完成。下一步：S01真机能力探针是S04a/b与S05b的前置；无设备时可先做S07a（MCP bearer与可选OAuth，依赖S06b，先bearer后Fosite OAuth，禁匿名降级）或S08（安装/升级/加密备份发行）。未验证前不得把任何metric标为verified或启用。完成后更新HANDOFF与能力记录。

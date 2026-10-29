@@ -14,10 +14,11 @@
 - `internal/httpapi`：上传端点（`/v1/shortcuts/plan`、`/observations`、`/attempts/{id}/failure`、`/status`、`/healthz`）；认证先于 body、2MiB 上限、深度 8、重复 key/NaN/Inf/未知字段拒绝、30/min 限流、统一错误字典。
 - `internal/aggregate`：S05a 每日聚合——每窗最新成功 snapshot、IANA 日界（23/25h）、离散 min/mean/max/latest、累计仅单源求和（多源/未知 sum=null）、empty/failed/stale 默认 null、revision CAS。
 - `internal/query`：S06a 只读查询——`/v1/query/summary`（日统计）与 `/v1/query/samples`（原始 quantity），跑在独立只读连接上；grant 校验 scope/metric/max_days，HMAC cursor 绑定 revision，`queries_paused` 默认 503，DTO 不透传 source 字段。
+- `internal/admin`：S06b owner 操作——VACUUM INTO 一致备份（含 WAL）+ integrity/FK + 计数 manifest；metric/window 范围删除（dry-run、清指针、删 snapshot/items/receipt、attempt→purged、写 exclusion）；私有 export（无 credentials/source_json）；restore（新 generation、撤销凭据、废弃 plans/attempts、保持 paused）。未暴露 HTTP。
 
 ## 尚未实现
 
-owner 导出/删除/恢复（S06b）、睡眠/训练聚合（S05b）、OAuth/MCP（S07）、installer/备份/升级（S08）。查询端点默认暂停（`queries_paused=1`），需 owner 显式启用。
+睡眠/训练聚合（S05b）、MCP/OAuth（S07）、installer/备份加密与升级（S08）。查询端点默认暂停（`queries_paused=1`），需 owner 显式启用。
 
 ## 命令
 

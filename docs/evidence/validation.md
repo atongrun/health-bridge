@@ -1,5 +1,13 @@
 # 验证记录
 
+## S06b owner 导出/删除/恢复（2026-10-25）
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI）：VACUUM INTO 备份含未 checkpoint 的 WAL 内容、备份 0600、manifest 仅计数+sha256、损坏备份被 Restore 拒绝、restore 轮换 generation/撤销凭据/queries_paused=1、删除 dry-run 不改数据、apply 后 snapshot/items/receipt 清零且窗口指针 NULL/state=excluded、attempt=purged、exclusion 记录、dirty_days 标记、解除 exclusion 后 purged attempt 仍不可重放、exclusion 阻止新上传（ErrCollectionExcl）、export 无 token_hash/source_json 且 0600 |
+| 演练范围 | 仅在临时合成库执行；未对生产库做删除/恢复 |
+| 未覆盖 | age 加密与保留策略（S08）；raw items 未包含在 export（文档已注明） |
+
 ## S06a 只读查询与 grant（2026-10-25）
 
 | 检查 | 实际结果 |
