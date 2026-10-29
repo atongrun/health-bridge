@@ -73,8 +73,9 @@ type SamplesInput struct {
 }
 
 // Result is the tool payload; it is the same DTO the REST API returns.
+// Response is a pointer so tool-error results can omit it entirely.
 type Result struct {
-	Response query.Response `json:"response"`
+	Response *query.Response `json:"response,omitempty"`
 }
 
 func (s *Service) healthSummary(ctx context.Context, _ *mcp.CallToolRequest, in SummaryInput) (*mcp.CallToolResult, Result, error) {
@@ -86,7 +87,7 @@ func (s *Service) healthSummary(ctx context.Context, _ *mcp.CallToolRequest, in 
 	if err != nil {
 		return toolError(mcpErrorMessage(err)), Result{}, nil
 	}
-	return nil, Result{Response: resp}, nil
+	return nil, Result{Response: &resp}, nil
 }
 
 func (s *Service) samples(ctx context.Context, _ *mcp.CallToolRequest, in SamplesInput) (*mcp.CallToolResult, Result, error) {
@@ -98,7 +99,7 @@ func (s *Service) samples(ctx context.Context, _ *mcp.CallToolRequest, in Sample
 	if err != nil {
 		return toolError(mcpErrorMessage(err)), Result{}, nil
 	}
-	return nil, Result{Response: resp}, nil
+	return nil, Result{Response: &resp}, nil
 }
 
 // toolError reports a tool-level failure inside Content so the model can see
