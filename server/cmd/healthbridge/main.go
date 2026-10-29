@@ -95,6 +95,8 @@ func run(args []string) error {
 		mux := http.NewServeMux()
 		mux.Handle("/", httpapi.NewHandler(db))
 		mux.Handle("/v1/query/", httpapi.NewQueryHandler(roDB, cursorSecret(cfg)))
+		mux.Handle("/mcp", httpapi.NewMCPHandler(roDB, cursorSecret(cfg)))
+		mux.Handle("/mcp/", httpapi.NewMCPHandler(roDB, cursorSecret(cfg)))
 		ln, err := net.Listen("tcp", cfg.ListenAddress)
 		if err != nil {
 			return err
