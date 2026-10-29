@@ -396,7 +396,7 @@ func (s *Store) GetAccessTokenSession(ctx context.Context, signature string, ses
 		return nil, err
 	}
 	if !s.sessionActive(ctx, "access", signature) {
-		return nil, fosite.ErrInactiveToken
+		return req, fosite.ErrInactiveToken
 	}
 	return req, nil
 }
@@ -420,7 +420,9 @@ func (s *Store) GetRefreshTokenSession(ctx context.Context, signature string, se
 		return nil, err
 	}
 	if !s.sessionActive(ctx, "refresh", signature) {
-		return nil, fosite.ErrInactiveToken
+		// Fosite needs the original request alongside ErrInactiveToken to
+		// revoke the whole grant on refresh-token reuse.
+		return req, fosite.ErrInactiveToken
 	}
 	return req, nil
 }
