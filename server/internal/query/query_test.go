@@ -52,6 +52,10 @@ func newQEnv(t *testing.T) *qenv {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Queries start paused by DDL; the owner explicitly enables them for tests.
+	if _, err := rw.Exec("UPDATE instance_state SET queries_paused=0 WHERE singleton=1"); err != nil {
+		t.Fatal(err)
+	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/", httpapi.NewHandler(rw))
@@ -79,6 +83,15 @@ func (e *qenv) get(t *testing.T, path, token string) (int, map[string]any) {
 
 func (e *qenv) seedDaily(t *testing.T, day, metric, profile string, min, sum float64) {
 	t.Helper()
+	// daily_metrics.profile_id references collection_profiles; create it if new.
+	var n int
+	_ = e.rw.QueryRow("SELECT count(*) FROM collection_profiles WHERE id=?", profile).Scan(&n)
+	if n == 0 {
+		if _, err := e.rw.Exec(`INSERT INTO collection_profiles(id,version,metric,window_seconds,mode,mapping_json,evidence_ref,verified,enabled)
+			VALUES(?,1,?,86400,'scheduled','{}','probe://s01',1,1)`, profile, metric); err != nil {
+			t.Fatal(err)
+		}
+	}
 	vj, _ := json.Marshal(map[string]any{"unit": "count/min", "min": min, "mean": min, "max": min, "sum": nil, "latest": nil, "n": 1})
 	qj, _ := json.Marshal(map[string]any{
 		"status": "observed_partial", "collection_method": "shortcuts_window_observation",
