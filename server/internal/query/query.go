@@ -268,8 +268,13 @@ func (s *Service) QueryDaily(g Grant, metrics []string, start, end string, limit
 	where = append(where, "day >= ?", "day < ?")
 	args = append(args, start, end)
 	if lastKey != "" {
-		where = append(where, "(day, metric, profile_id) > (?)")
-		args = append(args, lastKey)
+		// Keyset pagination. SQLite has no row-value comparison, so expand it.
+		parts := strings.SplitN(lastKey, "|", 2)
+		if len(parts) != 2 {
+			return resp, ErrCursorStale
+		}
+		where = append(where, "(day > ? OR (day = ? AND metric > ?))")
+		args = append(args, parts[0], parts[0], parts[1])
 	}
 	q := "SELECT day, metric, value_json, quality_json FROM daily_metrics WHERE " +
 		strings.Join(where, " AND ") + " ORDER BY day, metric LIMIT ?"
@@ -310,7 +315,7 @@ func (s *Service) QueryDaily(g Grant, metrics []string, start, end string, limit
 			latest = &l
 		}
 		data = append(data, Daily{Day: day, Metric: metric, Unit: v.Unit, Min: v.Min, Mean: v.Mean, Max: v.Max, Sum: v.Sum, Latest: latest, N: v.N, Quality: quality})
-		lastKeyOut = day + "," + metric
+		lastKeyOut = day + "|" + metric
 		count++
 		if count == limit {
 			break
