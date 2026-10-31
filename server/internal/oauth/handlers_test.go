@@ -123,7 +123,10 @@ func continueAuthorize(t *testing.T, e *henv, pendingID, cookieValue, cookieHash
 	if origin != "" {
 		req.Header.Set("Origin", origin)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	// Do not follow the authorization redirect (it points at the real client
+	// callback); capture the 302 and its Location instead.
+	client := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
