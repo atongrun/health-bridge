@@ -1,5 +1,13 @@
 # 验证记录
 
+## S07a OAuth HTTP 面（2026-10-31）
+
+| 检查 | 实际结果 |
+|---|---|
+| go test ./... | PASS（CI）：完整 consent 流程→code→token、未批准 409、跨浏览器绑定拒绝 403、CSRF/Origin 拒绝、并发 code 兑换仅一胜、pending id 单次使用、discovery 文档、canonical resource、禁用 404、撤销即时、MCP 接受 OAuth token |
+| 修复 | parked form 白名单漏 client_id/response_type；continue 需不跟随重定向（303）；MCP 区分 403/401 |
+| 未启用 | OAuth 生产默认关闭（需 0600 secret 文件）；未部署 |
+
 ## S07a OAuth 协议核心（2026-10-25）
 
 | 检查 | 实际结果 |
