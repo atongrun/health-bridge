@@ -38,6 +38,13 @@ jobs:
               go build -trimpath -ldflags='-s -w' \
               -o dist/healthbridge-linux-$arch ./cmd/healthbridge
           done
+          (cd dist && sha256sum healthbridge-linux-* > SHA256SUMS)
+      - name: Validate installer (syntax + dry-run preflight)
+        run: |
+          bash -n ../scripts/install.sh
+          bash -n ../scripts/backup.sh
+          # Dry-run exercises every preflight check without mutating the host.
+          sudo bash ../scripts/install.sh --from dist/healthbridge-linux-amd64 --dry-run
       - name: Upload binaries
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
