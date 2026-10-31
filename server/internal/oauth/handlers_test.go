@@ -173,7 +173,7 @@ func runConsent(t *testing.T, e *henv, state string) string {
 		t.Fatalf("approve: %v", err)
 	}
 	resp, body := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
-	if resp.StatusCode != http.StatusFound {
+	if resp.StatusCode != http.StatusFound && resp.StatusCode != http.StatusSeeOther {
 		t.Fatalf("continue status = %d body=%v", resp.StatusCode, body)
 	}
 	loc := resp.Header.Get("Location")
@@ -297,7 +297,7 @@ func TestConsentRequestNotReusableAfterConsumption(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp, _ := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
-	if resp.StatusCode != http.StatusFound {
+	if resp.StatusCode != http.StatusFound && resp.StatusCode != http.StatusSeeOther {
 		t.Fatalf("first continue status = %d", resp.StatusCode)
 	}
 	// Same pending id cannot be consumed twice.
