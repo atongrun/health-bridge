@@ -1,5 +1,13 @@
 # 验证记录
 
+## S07b 客户端联调（2026-10-31）
+
+| 检查 | 实际结果 |
+|---|---|
+| ChatGPT/Grok 真实连接 | NOT RUN：blocked（无公网 HTTPS 端点、无 owner 账号），状态 disabled |
+| 已就绪技术面 | /mcp 只读 tool + query bearer/OAuth token 双凭据 + OAuth/PKCE + discovery，均 CI 验证 |
+| 记录 | docs/evidence/client-validation.md（阻塞原因、owner 解锁步骤、联调后必填清单） |
+
 ## S08 发行与运维工具（2026-10-31）
 
 | 检查 | 实际结果 |

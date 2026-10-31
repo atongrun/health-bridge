@@ -21,7 +21,9 @@
 
 ## 下一任务
 
-无设备可推进项已基本完成；剩余 S07b（ChatGPT/Grok 联调，需 owner 自有合成 HTTPS 端点与账号）、S01 真机探针、S04a/b、S05b、S09 均需 owner 设备/账号/授权。S01真机探针仍是S04a/b、S05b、S07b的前置，未验证不得启用任何metric。
+无设备可推进项已基本完成。剩余各阶段全部阻塞在 owner 侧：
+- **S07b：blocked/disabled**（2026-10-31 记录于 docs/evidence/client-validation.md）——缺公网 HTTPS 端点（服务仅 127.0.0.1，未装 Caddy/开 443）与 ChatGPT/Grok owner 账号；不伪造兼容性。解锁步骤已写在 evidence 文件中。
+- S01 真机探针、S04a/b、S05b、S09：均需 owner iPhone 与对应授权。S01真机探针仍是S04a/b、S05b、S07b的前置，未验证不得启用任何metric。
 
 不能把S01写成已通过、启用未经验证的metric，或用Xcode补gate。禁止照旧App路线开发。生产变更（真实token、启用profile、开启查询、对生产库删除/恢复、HTTPS）均需owner对应授权。
 

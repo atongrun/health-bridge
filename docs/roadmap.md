@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02、S03a、S03b、S05a、S06a、S06b、S07a（MCP bearer + OAuth）与 S08（发行/运维工具）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07b、S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02、S03a、S03b、S05a、S06a、S06b、S07a（MCP bearer + OAuth）与 S08（发行/运维工具）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07b、S09未开始（S07b 已按 blocked/disabled 记录，见 docs/evidence/client-validation.md）。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
