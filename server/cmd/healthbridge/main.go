@@ -13,13 +13,15 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/atongrun/health-bridge/server/internal/config"
 	"github.com/atongrun/health-bridge/server/internal/httpapi"
+	"github.com/atongrun/health-bridge/server/internal/oauth"
 	"github.com/atongrun/health-bridge/server/internal/store"
 )
 
-const version = "0.1.0-s03b"
+const version = "0.1.0-s07a"
 
 const usage = `usage: healthbridge <command> [-config PATH]
 
@@ -92,11 +94,43 @@ func run(args []string) error {
 			return err
 		}
 		defer roDB.Close()
+		// OAuth stays off unless explicitly enabled; enabling requires the
+		// 0600 secret file from config.
+		var oauthHandler *oauth.Handler
+		if cfg.OAuth.Enabled {
+			secret, err := oauth.LoadSecret(cfg.OAuth.SecretFile)
+			if err != nil {
+				return fmt.Errorf("oauth secret: %w", err)
+			}
+			oauthStore := &oauth.Store{DB: db}
+			oauthHandler = &oauth.Handler{
+				Store: oauthStore,
+				Provider: oauth.NewProvider(oauthStore, secret, cfg.PublicOrigin),
+				DB:      db,
+				Issuer:  cfg.PublicOrigin,
+				Enabled: true,
+			}
+		}
 		mux := http.NewServeMux()
 		mux.Handle("/", httpapi.NewHandler(db))
 		mux.Handle("/v1/query/", httpapi.NewQueryHandler(roDB, cursorSecret(cfg)))
-		mux.Handle("/mcp", httpapi.NewMCPHandler(roDB, cursorSecret(cfg)))
-		mux.Handle("/mcp/", httpapi.NewMCPHandler(roDB, cursorSecret(cfg)))
+		mux.Handle("/mcp", httpapi.NewMCPHandler(roDB, cursorSecret(cfg), oauthHandler))
+		mux.Handle("/mcp/", httpapi.NewMCPHandler(roDB, cursorSecret(cfg), oauthHandler))
+		if oauthHandler != nil {
+			mux.HandleFunc("/oauth/authorize", oauthHandler.Authorize)
+			mux.HandleFunc("/oauth/token", oauthHandler.Token)
+			mux.HandleFunc("/oauth/revoke", oauthHandler.Revoke)
+			mux.HandleFunc("/oauth/pending/", func(w http.ResponseWriter, r *http.Request) {
+				oauthHandler.PendingStatus(w, r, strings.TrimPrefix(r.URL.Path, "/oauth/pending/"))
+			})
+			mux.HandleFunc("/oauth/continue", oauthHandler.Continue)
+			mux.HandleFunc("/.well-known/oauth-protected-resource/mcp", func(w http.ResponseWriter, r *http.Request) {
+				oauthHandler.Discovery(w, r, "protected-resource")
+			})
+			mux.HandleFunc("/.well-known/oauth-authorization-server", func(w http.ResponseWriter, r *http.Request) {
+				oauthHandler.Discovery(w, r, "authorization-server")
+			})
+		}
 		ln, err := net.Listen("tcp", cfg.ListenAddress)
 		if err != nil {
 			return err

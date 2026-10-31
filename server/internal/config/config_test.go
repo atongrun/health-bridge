@@ -88,7 +88,6 @@ func TestStagingGates(t *testing.T) {
 		mutate func(map[string]any)
 	}{
 		{"query_enabled", func(m map[string]any) { m["query_enabled"] = true }},
-		{"oauth_enabled", func(m map[string]any) { m["oauth"].(map[string]any)["enabled"] = true }},
 		{"enabled_profiles", func(m map[string]any) { m["collection"].(map[string]any)["enabled_profiles"] = []any{"p1"} }},
 		{"bad_protocol", func(m map[string]any) { m["collection"].(map[string]any)["protocol"] = "native-1" }},
 		{"jobs_per_plan", func(m map[string]any) { m["collection"].(map[string]any)["jobs_per_plan"] = 9 }},

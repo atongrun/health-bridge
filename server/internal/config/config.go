@@ -119,10 +119,10 @@ func (c *Config) validate() error {
 	// Staging gates: these features are implemented in later stages and must
 	// not be silently enabled by configuration.
 	if c.QueryEnabled {
-		return fmt.Errorf("query_enabled must be false until S06 query grant is implemented")
+		return fmt.Errorf("query_enabled must be false until the owner enables queries explicitly")
 	}
-	if c.OAuth.Enabled {
-		return fmt.Errorf("oauth.enabled must be false until S07 OAuth is implemented")
+	if c.OAuth.Enabled && c.OAuth.SecretFile == "" {
+		return fmt.Errorf("oauth.enabled requires oauth.secret_file")
 	}
 	if len(c.Collection.EnabledProfiles) != 0 {
 		return fmt.Errorf("collection.enabled_profiles must be empty until profiles pass S01 verification")
