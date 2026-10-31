@@ -83,8 +83,8 @@ func newMCPEnv(t *testing.T) *mcpEnv {
 		t.Fatal(err)
 	}
 	mux := http.NewServeMux()
-	mux.Handle("/mcp", httpapi.NewMCPHandler(ro, "test-secret"))
-	mux.Handle("/mcp/", httpapi.NewMCPHandler(ro, "test-secret"))
+	mux.Handle("/mcp", httpapi.NewMCPHandler(ro, "test-secret", nil))
+	mux.Handle("/mcp/", httpapi.NewMCPHandler(ro, "test-secret", nil))
 	srv := httptest.NewServer(mux)
 	t.Cleanup(func() { srv.Close(); ro.Close(); rw.Close() })
 	return &mcpEnv{srv: srv, rw: rw, queryTok: queryTok, upload: upload}

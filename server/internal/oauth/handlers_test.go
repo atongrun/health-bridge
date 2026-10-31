@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/atongrun/health-bridge/server/internal/oauth"
 	"github.com/atongrun/health-bridge/server/internal/store"
