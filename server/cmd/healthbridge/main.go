@@ -14,7 +14,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/atongrun/health-bridge/server/internal/admin"
 	"github.com/atongrun/health-bridge/server/internal/config"
 	"github.com/atongrun/health-bridge/server/internal/httpapi"
 	"github.com/atongrun/health-bridge/server/internal/oauth"
@@ -28,6 +30,7 @@ const usage = `usage: healthbridge <command> [-config PATH]
 commands:
   check-config   load and validate the config JSON
   migrate        apply versioned schema migrations (idempotent)
+  backup         write a consistent backup + manifest to backups.directory
   serve          run the shortcuts-1 upload server
   version        print the build version`
 
@@ -73,6 +76,25 @@ func run(args []string) error {
 			return err
 		}
 		fmt.Printf("schema version %d applied\n", v)
+		return nil
+	case "backup":
+		cfg, err := config.Load(*configPath)
+		if err != nil {
+			return err
+		}
+		db, err := store.Open(cfg.DatabasePath, false)
+		if err != nil {
+			return err
+		}
+		defer db.Close()
+		if err := store.RequireCurrentSchema(db); err != nil {
+			return err
+		}
+		backupPath, manifestPath, err := admin.Backup(db, cfg.Backups.Directory, time.Now())
+		if err != nil {
+			return err
+		}
+		fmt.Printf("backup: %s\nmanifest: %s\n", backupPath, manifestPath)
 		return nil
 	case "serve":
 		cfg, err := config.Load(*configPath)

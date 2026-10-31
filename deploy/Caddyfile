@@ -1,0 +1,15 @@
+# Health Bridge reverse proxy: terminate TLS and forward to the local backend.
+# Caddy obtains and renews certificates for the configured public origin.
+{
+	# email must be provided by the owner before enabling automatic HTTPS.
+	# email changeme@example.com
+}
+
+health.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080
+	log {
+		output stdout
+		format json
+	}
+}

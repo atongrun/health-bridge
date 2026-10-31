@@ -1,0 +1,8 @@
+[Unit]
+Description=Health Bridge database backup
+After=healthbridge.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/healthbridge/current/scripts/backup.sh

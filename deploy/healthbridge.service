@@ -1,0 +1,22 @@
+[Unit]
+Description=Health Bridge server (shortcuts-1)
+After=network.target
+
+[Service]
+User=healthbridge
+Group=healthbridge
+ExecStart=/opt/healthbridge/current/healthbridge serve -config /etc/healthbridge/config.json
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/healthbridge /run/healthbridge
+RuntimeDirectory=healthbridge
+RuntimeDirectoryMode=0700
+UMask=0077
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
