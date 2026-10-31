@@ -111,7 +111,7 @@ func hashOf(v string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func continueAuthorize(t *testing.T, e *henv, pendingID, cookieValue, cookieHash, origin string) *http.Response {
+func continueAuthorize(t *testing.T, e *henv, pendingID, cookieValue, cookieHash, origin string) (*http.Response, map[string]any) {
 	t.Helper()
 	form := url.Values{}
 	form.Set("request_id", pendingID)
@@ -126,7 +126,10 @@ func continueAuthorize(t *testing.T, e *henv, pendingID, cookieValue, cookieHash
 	if err != nil {
 		t.Fatal(err)
 	}
-	return resp
+	var body map[string]any
+	_ = json.NewDecoder(resp.Body).Decode(&body)
+	resp.Body.Close()
+	return resp, body
 }
 
 func exchangeCode(t *testing.T, e *henv, code string) (int, map[string]any) {
@@ -161,10 +164,9 @@ func runConsent(t *testing.T, e *henv, state string) string {
 	if err := e.handler.Approve(t.Context(), pendingID, true); err != nil {
 		t.Fatalf("approve: %v", err)
 	}
-	resp := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
-	defer resp.Body.Close()
+	resp, body := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
 	if resp.StatusCode != http.StatusFound {
-		t.Fatalf("continue status = %d", resp.StatusCode)
+		t.Fatalf("continue status = %d body=%v", resp.StatusCode, body)
 	}
 	loc := resp.Header.Get("Location")
 	u, err := url.Parse(loc)
@@ -196,8 +198,7 @@ func TestFullConsentFlowToToken(t *testing.T) {
 func TestContinueWithoutApprovalRefused(t *testing.T) {
 	e := newHEnv(t)
 	pendingID, cookieValue, cookieHash := startAuthorize(t, e, "state-noapprove-0123456789ab")
-	resp := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
-	defer resp.Body.Close()
+	resp, _ := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
 	if resp.StatusCode != http.StatusConflict {
 		t.Fatalf("unapproved continue status = %d, want 409", resp.StatusCode)
 	}
@@ -234,11 +235,10 @@ func TestCSRFAndOriginChecks(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Wrong origin.
-	resp := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, "https://evil.example")
+	resp, _ := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, "https://evil.example")
 	if resp.StatusCode != http.StatusForbidden {
 		t.Fatalf("cross-origin continue status = %d, want 403", resp.StatusCode)
 	}
-	resp.Body.Close()
 	// Wrong CSRF token.
 	form := url.Values{}
 	form.Set("request_id", pendingID)
@@ -288,16 +288,14 @@ func TestConsentRequestNotReusableAfterConsumption(t *testing.T) {
 	if err := e.handler.Approve(t.Context(), pendingID, true); err != nil {
 		t.Fatal(err)
 	}
-	resp := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
-	resp.Body.Close()
+	resp, _ := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
 	if resp.StatusCode != http.StatusFound {
 		t.Fatalf("first continue status = %d", resp.StatusCode)
 	}
 	// Same pending id cannot be consumed twice.
-	resp2 := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
-	resp2.Body.Close()
+	resp2, body2 := continueAuthorize(t, e, pendingID, cookieValue, cookieHash, issuer)
 	if resp2.StatusCode != http.StatusConflict {
-		t.Fatalf("second continue status = %d, want 409", resp2.StatusCode)
+		t.Fatalf("second continue status = %d body=%v, want 409", resp2.StatusCode, body2)
 	}
 }
 
