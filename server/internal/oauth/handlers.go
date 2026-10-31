@@ -87,7 +87,7 @@ func (h *Handler) Authorize(w http.ResponseWriter, r *http.Request) {
 		"client_id":          ar.GetClient().GetID(),
 		"requested_scope":    ar.GetRequestedScopes(),
 		"requested_audience": ar.GetRequestedAudience(),
-		"form":               allowlistedForm(r.PostForm),
+		"form":               allowlistedForm(r.Form), // GET query (and POST form) both land in r.Form
 		"requested_at":       h.now().UTC().Format(time.RFC3339Nano),
 	})
 	if _, err := h.DB.Exec(`INSERT INTO oauth_requests(id,browser_binding_hash,client_id,request_json,state,expires_at_us)
@@ -226,6 +226,7 @@ func (h *Handler) Continue(w http.ResponseWriter, r *http.Request) {
 		form[k] = v
 	}
 	req := &http.Request{Method: http.MethodGet, PostForm: form, Form: form, URL: &url.URL{RawQuery: form.Encode()}}
+	req.ParseForm() //nolint:errcheck
 	ar, err := h.Provider.NewAuthorizeRequest(r.Context(), req)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid_request", "parked request no longer valid")

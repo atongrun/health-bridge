@@ -43,7 +43,11 @@ func (h *mcpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	grant, limiterKey, err := h.resolveAccess(token)
 	if err != nil {
-		writeError(w, http.StatusUnauthorized, "unauthorized", "invalid credential", requestID(), false)
+		if errors.Is(err, errForbidden) {
+			writeError(w, http.StatusForbidden, "forbidden", "token lacks query scope", requestID(), false)
+		} else {
+			writeError(w, http.StatusUnauthorized, "unauthorized", "invalid credential", requestID(), false)
+		}
 		return
 	}
 	if !queryLimiter.allow(limiterKey, time.Now()) {
@@ -71,7 +75,7 @@ func (h *mcpHandler) resolveAccess(token string) (query.Grant, string, error) {
 		return query.Grant{}, "", err
 	}
 	if cred.Role != "query" {
-		return query.Grant{}, "", errors.New("token lacks query scope")
+		return query.Grant{}, "", errForbidden
 	}
 	grant, err := query.ParseGrant(cred.ScopesJSON)
 	if err != nil {
