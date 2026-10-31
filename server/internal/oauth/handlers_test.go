@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -126,9 +127,13 @@ func continueAuthorize(t *testing.T, e *henv, pendingID, cookieValue, cookieHash
 	if err != nil {
 		t.Fatal(err)
 	}
-	var body map[string]any
-	_ = json.NewDecoder(resp.Body).Decode(&body)
+	raw, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
+	var body map[string]any
+	_ = json.Unmarshal(raw, &body)
+	if len(raw) > 0 && body == nil {
+		body = map[string]any{"_raw": string(raw)}
+	}
 	return resp, body
 }
 
