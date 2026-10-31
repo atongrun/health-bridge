@@ -1,5 +1,13 @@
 # 验证记录
 
+## S08 发行与运维工具（2026-10-31）
+
+| 检查 | 实际结果 |
+|---|---|
+| CI | PASS：go test/vet 通过；installer `bash -n` 语法检查 + `--dry-run` 预检（root/arch/1GiB/端口）通过；release 二进制生成 SHA256SUMS |
+| 交付 | scripts/install.sh、scripts/backup.sh、deploy/Caddyfile、deploy/healthbridge{.service,-backup.{service,timer}}、`healthbridge backup` CLI |
+| 未验证 | 真实 VPS 的空/已有 VM 安装、坏 checksum 拒绝、低盘拒绝、迁移失败恢复、重启、备份恢复演练（需真实环境，不伪造） |
+
 ## S07a OAuth HTTP 面（2026-10-31）
 
 | 检查 | 实际结果 |

@@ -1,6 +1,6 @@
 # 当前Roadmap：S01–S09
 
-P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02、S03a、S03b、S05a、S06a、S06b 与 S07a（MCP bearer，OAuth 待后续提交）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07a-OAuth、S07b、S08–S09未开始。
+P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已撤销，不能继续执行原生App阶段。** S02、S03a、S03b、S05a、S06a、S06b、S07a（MCP bearer + OAuth）与 S08（发行/运维工具）已完成；S01仍待本人iPhone真机验证，S04a/b、S05b、S07b、S09未开始。
 
 每个子阶段独立交付；输入=依赖产物+当前ADR/API/Schema；通用DoD=范围内代码/有意义测试/文档同步/HANDOFF/真实命令结果。通常≤8实现文件/300净实现行，超出在本阶段内拆分。文档/测试/生成物不计实现阈值。
 
@@ -136,6 +136,7 @@ P00b是本轮文档与契约改版，未进入正式业务。**旧P01–P11已�
 ## S08 — 安装/升级/加密备份发行
 
 - 目标：安装/升级/加密备份发行。
+- 状态：已完成（2026-10-31，代码与文档层面）。installer（--dry-run preflight、幂等）、Caddyfile、age 加密备份 timer、`healthbridge backup` CLI、release SHA256SUMS；CI 跑 installer 语法+干跑。**真实 VPS 的安装/升级/坏 checksum/低盘/迁移失败恢复未在真实环境演练**（不伪造一键部署已运行）。
 - 依赖/输入：S06b；MCP/OAuth按可选功能打包。
 - 文件边界：deploy/、scripts/install.sh、release workflow、notices/SBOM。
 - 详细任务：固定版本/checksum、dry-run、同机Caddy、权限/端口/空间preflight、age timer、升级失败恢复；shortcut模板无secret。

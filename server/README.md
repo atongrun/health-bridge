@@ -19,7 +19,7 @@
 
 ## 尚未实现
 
-睡眠/训练聚合（S05b）、S07b 客户端联调、installer/备份加密与升级（S08）。查询端点默认暂停（`queries_paused=1`），需 owner 显式启用。
+睡眠/训练聚合（S05b）、S07b 客户端联调。发行/运维见 scripts/install.sh 与 deploy/（S08）。查询端点默认暂停（`queries_paused=1`），需 owner 显式启用。
 
 ## 命令
 
@@ -27,6 +27,7 @@
 healthbridge check-config -config /etc/healthbridge/config.json
 healthbridge migrate      -config /etc/healthbridge/config.json
 healthbridge serve        -config /etc/healthbridge/config.json   # 上传端点 + /healthz
+healthbridge backup      -config /etc/healthbridge/config.json   # 一致备份 + manifest
 ```
 
 `go test ./...` 与 `go vet ./...` 在 CI 执行；本地 `python3 scripts/check_docs.py` 仍只验证设计材料。生产部署见 [deployment](../docs/deployment.md) 与 [evidence](../docs/evidence/)。
