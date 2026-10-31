@@ -60,6 +60,8 @@ type payloadDTO struct {
 
 // allowlisted form keys only; the rest of the request form is discarded.
 var allowedFormKeys = map[string]bool{
+	"client_id":             true,
+	"response_type":         true,
 	"code_challenge":        true,
 	"code_challenge_method": true,
 	"resource":              true,

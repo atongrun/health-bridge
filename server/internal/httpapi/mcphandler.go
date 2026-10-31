@@ -15,6 +15,8 @@ import (
 	"github.com/ory/fosite"
 )
 
+var errForbidden = errors.New("forbidden")
+
 // mcpHandler authenticates every MCP request with either a query-role bearer
 // token or an OAuth access token (introspected on every request) before
 // handing it to the SDK. There is no anonymous mode.
